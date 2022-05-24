@@ -7,7 +7,7 @@ spec:
   version: 7.14.0
   nodeSets:
   - name: logging
-    count: 4
+    count: 3
     config:
       node.store.allow_mmap: false
       node.roles: [ master, data, ingest ]

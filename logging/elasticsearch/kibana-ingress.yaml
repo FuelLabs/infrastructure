@@ -8,7 +8,7 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
 spec:
   rules:
-    - host: kibana.swayswap.io
+    - host: ${kibana_ingress_dns}
       http:
         paths:
           - path: /
@@ -20,5 +20,5 @@ spec:
                   number: 5601
   tls:
     - hosts:
-        - kibana.swayswap.io
+        - ${kibana_ingress_dns}
       secretName: kibana-logging
