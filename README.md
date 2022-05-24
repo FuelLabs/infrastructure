@@ -150,7 +150,13 @@ Then run the [deploy-k8s-logging][deploy-k8s-logging] script:
 
 This will setup elasticsearch and fluentd on your cluster.
 
-In order to view your kibana UI ingress, run the following: 
+In order to deploy your Kibana ingress, run the [deploy-k8s-kibana-ingress][deploy-k8s-kibana-ingress]
+
+```bash
+  ./deploy-k8s-kibana-ingress.sh
+```
+ 
+Then to view the kibana ingress:
 
 ```bash
   kubectl get ingress kibana-ingress -n logging
@@ -169,8 +175,9 @@ The default username for kibana dashboard UI will be "elastic" and the password 
 [cert-manager]: https://cert-manager.io/docs/configuration/acme/
 [create-k8s-sh]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/create-k8s.sh
 [delete-k8s-sh]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/delete-k8s.sh
-[docker-desktop]: https://docs.docker.com/engine/install/
+[deploy-k8s-kibana-ingress]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/deploy-k8s-kibana-ingress.sh
 [deploy-k8s-logging]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/deploy-k8s-logging.sh
+[docker-desktop]: https://docs.docker.com/engine/install/
 [env-file]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/.env
 [gettext-cli]: https://www.gnu.org/software/gettext/
 [helm]: https://helm.sh/docs/intro/install/

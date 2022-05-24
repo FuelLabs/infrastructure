@@ -1,0 +1,23 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: eck
+  namespace: logging
+spec:
+  version: 7.14.0
+  nodeSets:
+  - name: logging
+    count: 3
+    config:
+      node.store.allow_mmap: false
+      node.roles: [ master, data, ingest ]
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 200Gi
+        storageClassName: gp2
