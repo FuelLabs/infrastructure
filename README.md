@@ -85,6 +85,8 @@ You will need to customize the following environment variables as needed (for va
 | ENV Variable                   |  Script Usage             | Description                                                                                       |
 |--------------------------------|---------------------------|---------------------------------------------------------------------------------------------------|
 | kibana_ingress_dns             |  deploy-k8s-logging       | your kibaa ingress dns                                                                            |
+| letsencrypt_email              |  create-k8s (all)         | the email address for requesting & renewing your lets encrypt certificate                         |
+| grafana_ingress_dns            |  create-k8s (all)         | the custom dns address for the grafana ingress                                                    |
 | k8s_provider                   |  create-k8s (all)         | your kubernetes provider name, possible options: eks                                              |
 | TF_VAR_aws_environment         |  create-k8s (all)         | environment name                                                                                  |
 | TF_VAR_aws_region              |  create-k8s (aws)         | AWS region where you plan to deploy your EKS cluster e.g. us-east-1                               |
@@ -136,6 +138,34 @@ If you need to tear down your entire k8s cluster, just run the [delete-k8s.sh][d
 ./delete-k8s.sh
 ```
 
+
+## Deploying Prometheus-Grafana on k8s
+
+[Prometheus][prometheus] and [Grafana][grafana] are used for monitoring and visualization of the k8s cluster and fuel-core deployment(s) metrics.
+
+The prometheus-grafana stack is deployed to the monitoring namespace via create-k8s script:
+
+In order to access the grafana dashboard, you can will need to run:
+
+```bash
+kubectl port-forward svc/kube-prometheus-grafana 3001:80 -n monitoring
+```
+
+You can then access the grafana dashboard via localhost:3001. 
+
+For grafana console access, the default username is 'admin' and password is 'prom-operator',
+
+If you want to access the grafana dashboard from a custom DNS address, you need to select 'grafana_ingress_dns' env that is a custom DNS address available in your owned DNS domain.
+
+Check that the grafana ingress is setup via:
+
+```bash
+% kubectl get ingress -n monitoring
+NAME                 CLASS    HOSTS                    ADDRESS                              PORTS     AGE
+monitoring-ingress   <none>   monitoring.example.com   xxxxxx.elb.us-east-1.amazonaws.com   80, 443   19d
+
+```
+
 ## Setup Elasticsearch & FluentD Logging on k8s
 
 Once your k8s cluster is deployed, you can setup elasticsearch and fluentd setup on your k8s cluster.
@@ -180,10 +210,12 @@ The default username for kibana dashboard UI will be "elastic" and the password 
 [docker-desktop]: https://docs.docker.com/engine/install/
 [env-file]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/.env
 [gettext-cli]: https://www.gnu.org/software/gettext/
+[grafana]: https://grafana.com/
 [helm]: https://helm.sh/docs/intro/install/
 [iam-auth]: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
 [ingress-controller]: https://github.com/kubernetes/ingress-nginx
 [ingress-def]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [k8s-terraform]: https://github.com/FuelLabs/infrastructure/tree/master/terraform
 [kubectl-cli]: https://kubernetes.io/docs/tasks/tools/
+[prometheus]: https://prometheus.io/
 [terraform]: https://learn.hashicorp.com/tutorials/terraform/install-cli
