@@ -27,3 +27,4 @@ if [ "${k8s_provider}" == "eks" ]; then
 else
    echo "You have inputted a non-supported kubernetes provider in your .env"
 fi
+
