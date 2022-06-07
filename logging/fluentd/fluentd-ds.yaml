@@ -80,7 +80,7 @@ spec:
           - name: FLUENT_ELASTICSEARCH_USER
             value: elastic
           - name: FLUENT_ELASTICSEARCH_PASSWORD
-            value: ${fluentd_password}
+            value: ${elasticsearch_password}
         resources:
           limits:
             memory: 200Mi

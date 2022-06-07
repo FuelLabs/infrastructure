@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaeger-tracing-ingress
+  namespace: observability
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" 
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - host: ${jaeger_tracing_ingress_dns}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fuel-jaeger-tracing-query 
+                port:
+                  number: 16686
+  tls:
+    - hosts:
+        - ${jaeger_tracing_ingress_dns}
+      secretName: jaeger-tracing-ingress

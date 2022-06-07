@@ -199,6 +199,28 @@ The default username for kibana dashboard UI will be "elastic" and the password 
   echo $PASSWORD
 ```
 
+## Deploying Jaeger on k8s
+
+Jaeger is an opensource end to end distributed system. There is native support for OpenTelemetry in [Jaeger][jaeger].
+
+Before you deploy Jaeger, make sure to follow the section above to "Setup Elasticsearch & FluentD Logging on k8s". 
+
+The elasticsearch instance is required to deploy Jaeger with an ElasticSearch storage backend. 
+
+To deploy the jaeger operator and instance, simply run the [deploy-jaeger-tracing][deploy-jaeger-tracing]
+
+```bash
+  ./deploy-jaeger-tracing.sh
+```
+
+Then to view the jaeger ingress:
+
+```bash
+  kubectl get ingress jaeger-tracing-ingress -n observability
+```
+
+Once Jaeger is setup, you can start to integrate fuel services to send traces Jaeger via [OpenTelemetry SDK][opentelemetry-sdk]
+
 [add-users-aws-auth]: https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
 [aws-cli]: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 [aws-eks]: https://aws.amazon.com/eks/
@@ -207,6 +229,7 @@ The default username for kibana dashboard UI will be "elastic" and the password 
 [delete-k8s-sh]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/delete-k8s.sh
 [deploy-k8s-kibana-ingress]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/deploy-k8s-kibana-ingress.sh
 [deploy-k8s-logging]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/deploy-k8s-logging.sh
+[deploy-jaeger-tracing]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/deploy-jaeger-tracing.sh
 [docker-desktop]: https://docs.docker.com/engine/install/
 [env-file]: https://github.com/FuelLabs/infrastructure/blob/master/scripts/.env
 [gettext-cli]: https://www.gnu.org/software/gettext/
@@ -215,7 +238,10 @@ The default username for kibana dashboard UI will be "elastic" and the password 
 [iam-auth]: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
 [ingress-controller]: https://github.com/kubernetes/ingress-nginx
 [ingress-def]: https://kubernetes.io/docs/concepts/services-networking/ingress/
+[jaeger]: https://www.jaegertracing.io/
+[jaeger-operator]: https://www.jaegertracing.io/docs/1.34/operator/
 [k8s-terraform]: https://github.com/FuelLabs/infrastructure/tree/master/terraform
 [kubectl-cli]: https://kubernetes.io/docs/tasks/tools/
 [prometheus]: https://prometheus.io/
 [terraform]: https://learn.hashicorp.com/tutorials/terraform/install-cli
+[opentelemetry-sdk]: https://www.jaegertracing.io/_client_libs/client-libraries/
