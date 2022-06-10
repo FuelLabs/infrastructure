@@ -1,0 +1,16 @@
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: fuel-jaeger-tracing
+  namespace: observability
+spec:
+  strategy: production
+  storage:
+    type: elasticsearch 
+    options:
+      es:
+        server-urls: https://eck-es-http.logging.svc:9200
+        username: elastic
+        password: ${elasticsearch_password}
+        tls:
+          skip-host-verify: true

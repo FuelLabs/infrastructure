@@ -19,7 +19,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     kubectl apply -f logging-kibana.yaml
     cd ../fluentd/
     kubectl apply -f fluentd-cm.yaml
-    export fluentd_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
+    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
     mv fluentd-ds.yaml fluentd-ds.template
     envsubst < fluentd-ds.template > fluentd-ds.yaml
     rm fluentd-ds.template
@@ -27,3 +27,4 @@ if [ "${k8s_provider}" == "eks" ]; then
 else
    echo "You have inputted a non-supported kubernetes provider in your .env"
 fi
+
