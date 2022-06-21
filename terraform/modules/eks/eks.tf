@@ -194,7 +194,7 @@ resource "aws_security_group" "eks-cluster-sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
@@ -216,7 +216,7 @@ ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
