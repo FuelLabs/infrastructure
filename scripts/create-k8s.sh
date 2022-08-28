@@ -27,7 +27,7 @@ sleep 600
 echo "Now setting up your k8s cluster ..."
 
 if [ "${k8s_provider}" == "eks" ]; then
-    cd ../../../ingress/
+    cd ../ingress/
     echo "Updating your kube context locally ....."
     aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
     echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name} ...."
@@ -43,17 +43,15 @@ if [ "${k8s_provider}" == "eks" ]; then
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/1.21/deploy.yaml 
     sleep 300 
     echo "Deploying kube-prometheus helm chart to ${TF_VAR_eks_cluster_name} ...."
+    cd ../monitoring/
+    mv values.yaml values.template
+    envsubst < values.template > values.yaml
+    rm values.template
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
-    helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack \
-              --install \
-              --create-namespace \
-              --namespace=monitoring \
-              --wait \
-              --timeout 8000s \
-              --debug
-              --version ^34
-    sleep 300
+    helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values values.yaml --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
+    sleep 300 
+    cd ../ingress/
     echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name} ...."
     mv monitoring-ingress.yaml monitoring-ingress.template
     envsubst < monitoring-ingress.template > monitoring-ingress.yaml
