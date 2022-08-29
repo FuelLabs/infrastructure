@@ -21,7 +21,7 @@ echo "Creating or updating k8s cluster now .... please don't interrupt your term
 
 terraform plan 
 
-#terraform apply -auto-approve
+terraform apply -auto-approve
 
 echo $STAR
 
