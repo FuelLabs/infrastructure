@@ -19,7 +19,11 @@ terraform init
 
 echo "Creating or updating k8s cluster now .... please don't interrupt your terminal ...."
 
-terraform apply -auto-approve
+terraform plan 
+
+#terraform apply -auto-approve
+
+echo $STAR
 
 echo "Please wait while your k8s cluster gets ready ...."
 sleep 600
