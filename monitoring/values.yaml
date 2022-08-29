@@ -42,16 +42,16 @@ defaultRules:
     kubeApiserverBurnrate: true
     kubeApiserverHistogram: true
     kubeApiserverSlos: true
-    kubeControllerManager: true
+    kubeControllerManager: false
     kubelet: true
-    kubeProxy: true
+    kubeProxy: false
     kubePrometheusGeneral: true
     kubePrometheusNodeRecording: true
     kubernetesApps: true
     kubernetesResources: true
     kubernetesStorage: true
     kubernetesSystem: true
-    kubeScheduler: true
+    kubeScheduler: false
     kubeStateMetrics: true
     network: true
     node: true
@@ -155,10 +155,10 @@ additionalPrometheusRulesMap:
           annotations:
             identifier: "{{ $labels.namespace }}/{{ $labels.persistenvolumeclaim }}"
             description: "Persistent volume predicted to run out of space in under 4 hours"
-        - alert: Kubernetes Pod has above 3 restarts
+        - alert: Kubernetes Pod has above 5 restarts
           annotations:
-            message: Kubernetes Pod has above 3 restarts
-          expr: kube_pod_container_status_restarts_total > 3
+            message: Kubernetes Pod has above 5 restarts
+          expr: kube_pod_container_status_restarts_total > 5
           for: 10m
           labels:
             severity: warning
@@ -169,7 +169,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_terminated_reason{reason="Error"} > 0
           for: 10m
           labels:
-            severity: warning
+            severity: critical
         - alert: Kubernetes Pod is Waiting Due to ImagePullBackOff
           annotations:
             message: Kubernetes Pod is Waiting Due to ImagePullBackOff
@@ -177,7 +177,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_waiting_reason{reason="ImagePullBackOff"} > 0 
           for: 10m
           labels:
-            severity: warning
+            severity: critical
         - alert: Kubernetes Pod is Waiting Due to Crash Looping
           annotations:
             message: Kubernetes Pod is Waiting Due to Crash Looping
@@ -185,7 +185,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} > 0 
           for: 10m
           labels:
-            severity: warning   
+            severity: critical  
         - alert: Kubernetes Pod is Terminated Due to Eviction
           annotations:
             message: Kubernetes Pod is Terminated Due to Eviction
@@ -193,7 +193,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_last_terminated_reason{reason="Evicted"} > 0
           for: 10m
           labels:
-            severity: warning
+            severity: critical
         - alert: Kubernetes Pod is Terminated Due to Container Cannot Run
           annotations:
             message: Kubernetes Pod is Terminated Due to Container Cannot Run
@@ -201,7 +201,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_last_terminated_reason{reason="ContainerCannotRun"} > 0 
           for: 10m
           labels:
-            severity: warning 
+            severity: critical
         - alert: Kubernetes Pod is Terminated Due to OOMKilled
           annotations:
             message: Kubernetes Pod is Terminated Due to OOMKilled
@@ -209,7 +209,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} > 0
           for: 10m
           labels:
-            severity: warning    
+            severity: critical
         - alert: Kubernetes Pod is Terminated Due to Deadline Exceeded 
           annotations:
             message: Kubernetes Pod is Terminated Due to Deadline Exceeded 
@@ -217,7 +217,7 @@ additionalPrometheusRulesMap:
             kube_pod_container_status_last_terminated_reason{reason="DeadlineExceeded"} > 0
           for: 10m
           labels:
-            severity: warning
+            severity: critical
 
 ##
 global:
@@ -288,28 +288,15 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: '{slack_api_url}'
+      slack_api_url: 'https://hooks.slack.com/services/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'
     inhibit_rules:
       - source_matchers:
           - 'severity = critical'
         target_matchers:
-          - 'severity =~ warning|info'
+          - 'severity = critical'
         equal:
           - 'namespace'
           - 'alertname'
-      - source_matchers:
-          - 'severity = warning'
-        target_matchers:
-          - 'severity = info'
-        equal:
-          - 'namespace'
-          - 'alertname'
-      - source_matchers:
-          - 'alertname = InfoInhibitor'
-        target_matchers:
-          - 'severity = info'
-        equal:
-          - 'namespace'
     route:
       group_by: ['namespace']
       group_wait: 30s
