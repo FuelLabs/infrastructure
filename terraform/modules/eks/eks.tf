@@ -15,7 +15,7 @@ module "eks" {
   }
 
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = concat(module.vpc.public_subnets, module.vpc.private_subnets)
+  subnet_ids = concat(module.vpc.aws_public_subnets, module.vpc.aws_private_subnets)
   create_iam_role = false
   iam_role_arn = aws_iam_role.eks-cluster-iam-role.arn
   create_cluster_security_group= false
@@ -38,7 +38,7 @@ resource "aws_eks_node_group" "nodes" {
   cluster_name    = module.eks.cluster_id
   node_group_name = var.eks_node_groupname
   node_role_arn   = aws_iam_role.eks-nodegroup-iam-role.arn
-  subnet_ids      = module.vpc.private_subnets
+  subnet_ids      = module.vpc.aws_private_subnets
   capacity_type   = var.eks_capacity_type 
   ami_type        = var.eks_node_ami_type
   instance_types  = var.eks_node_instance_types
@@ -194,7 +194,7 @@ resource "aws_security_group" "eks-cluster-sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
@@ -216,7 +216,7 @@ ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
