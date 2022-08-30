@@ -1,6 +1,7 @@
 # EKS Cluster
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
+  version = "18.29.0"
 
   cluster_name                    = "${var.eks_cluster_name}"
   cluster_version                 = "${var.eks_cluster_version}"
@@ -68,7 +69,7 @@ resource "aws_eks_node_group" "nodes" {
 
 # EKS Cluster IAM Role
 resource "aws_iam_role" "eks-cluster-iam-role" {
-  name = "eks-cluster-iam-role"
+  name = "${var.eks_cluster_name}-eks-cluster-iam-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -104,7 +105,7 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEC2ContainerRegistryRe
 
 # EKS Node IAM Role
 resource "aws_iam_role" "eks-nodegroup-iam-role" {
-  name = "eks-managed-group-node-role"
+  name = "${var.eks_cluster_name}-eks-managed-group-node-role"
 
   assume_role_policy = <<EOF
 {
@@ -152,7 +153,7 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   role = aws_iam_role.eks-nodegroup-iam-role.name
 }
 resource "aws_iam_policy" "cluster_autoscaler_policy" {
-  name        = "ClusterAutoScaler"
+  name        = "${var.eks_cluster_name}-ClusterAutoScaler"
   description = "Give the worker node running the Cluster Autoscaler access"
 policy = <<EOF
 {
@@ -194,7 +195,7 @@ resource "aws_security_group" "eks-cluster-sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
@@ -216,7 +217,7 @@ ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   egress {
@@ -228,5 +229,16 @@ ingress {
 
   tags = {
     "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+  }
+}
+
+
+resource "aws_eks_identity_provider_config" "eks_identity_provider" {
+  cluster_name = "${var.eks_cluster_name}"
+
+  oidc {
+    client_id                     = "sts.amazonaws.com"
+    identity_provider_config_name = "${var.eks_cluster_name}-eks-oidc"
+    issuer_url                    = "${module.eks.cluster_oidc_issuer_url}"
   }
 }
