@@ -237,7 +237,7 @@ resource "aws_eks_identity_provider_config" "eks_identity_provider" {
   cluster_name = "${var.eks_cluster_name}"
 
   oidc {
-    client_id                     = ["sts.amazonaws.com"]
+    client_id                     = "sts.amazonaws.com"
     identity_provider_config_name = "${var.aws_environment}-eks-oidc"
     issuer_url                    = "${module.eks.cluster_oidc_issuer_url}"
   }
