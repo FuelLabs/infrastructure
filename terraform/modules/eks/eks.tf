@@ -242,4 +242,3 @@ resource "aws_eks_identity_provider_config" "eks_identity_provider" {
     issuer_url                    = "${module.eks.cluster_oidc_issuer_url}"
   }
 }
-}
