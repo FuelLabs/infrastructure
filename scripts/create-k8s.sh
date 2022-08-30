@@ -22,12 +22,12 @@ echo "Creating or updating k8s cluster now .... please don't interrupt your term
 terraform apply -auto-approve
 
 echo "Please wait while your k8s cluster gets ready ...."
-sleep 120
+#sleep 120
 
 echo "Now setting up your k8s cluster ..."
 
 if [ "${k8s_provider}" == "eks" ]; then
-    cd ../ingress/
+    cd ../../../ingress/
     echo "Updating your kube context locally ....."
     aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
     echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name} ...."
