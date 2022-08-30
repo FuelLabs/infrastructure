@@ -60,9 +60,9 @@ if [ "${k8s_provider}" == "eks" ]; then
     cd ../logging/elasticsearch
     kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml
     kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yaml
-    kubectl create ns logging
+    kubectl create ns logging || true
     kubectl apply -f logging-cluster.yaml
-    sleep 180
+    sleep 120
     kubectl apply -f logging-kibana.yaml
     cd ../fluentd/
     kubectl apply -f fluentd-cm.yaml
@@ -78,7 +78,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     rm kibana-ingress.template
     kubectl apply -f kibana-ingress.yaml
     echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name} ...."
-    kubectl create namespace observability
+    kubectl create ns observability || true
     kubectl apply -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
     sleep 120 
     kubectl get pods -n observability
