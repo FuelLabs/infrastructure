@@ -40,7 +40,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     rm prod-issuer.template
     kubectl apply -f prod-issuer.yaml
     echo "Deploying nginx ingress controller to ${TF_VAR_eks_cluster_name} ...."
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml
     sleep 180 
     echo "Deploying kube-prometheus helm chart to ${TF_VAR_eks_cluster_name} ...."
     cd ../monitoring/
