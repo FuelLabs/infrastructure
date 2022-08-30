@@ -61,6 +61,31 @@ if [ "${k8s_provider}" == "eks" ]; then
     envsubst < monitoring-ingress.template > monitoring-ingress.yaml
     rm monitoring-ingress.template
     kubectl apply -f monitoring-ingress.yaml
+    echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name} ...."
+    cd ../logging/elasticsearch
+    kubectl create -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml
+    kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yam
+    kubectl create ns logging
+    kubectl apply -f logging-cluster.yaml
+    sleep 600
+    kubectl apply -f logging-kibana.yaml
+    cd ../fluentd/
+    kubectl apply -f fluentd-cm.yaml
+    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
+    mv fluentd-ds.yaml fluentd-ds.template
+    envsubst < fluentd-ds.template > fluentd-ds.yaml
+    rm fluentd-ds.template
+    kubectl apply -f fluentd-ds.yaml
+    echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name} ...."
+    mv kibana-ingress.yaml kibana-ingress.template
+    envsubst < kibana-ingress.template > kibana-ingress.yaml
+    rm kibana-ingress.template
+    kubectl apply -f kibana-ingress.yaml
+    echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name} ...."
+    cd ../tracing
+    kubectl create namespace observability
+    kubectl create -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
+    sleep 180
 else
    echo "You have inputted a non-supported kubernetes provider in your .env"
 fi

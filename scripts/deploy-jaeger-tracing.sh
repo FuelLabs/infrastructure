@@ -9,12 +9,6 @@ if [ "${k8s_provider}" == "eks" ]; then
     echo " ...."
     echo "Updating your kube context locally ...."
     aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
-    cd ../tracing
-    echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name} ...."
-    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
-    kubectl create namespace observability
-    kubectl create -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
-    sleep 180
     echo "Deploying jaeger instance to ${TF_VAR_eks_cluster_name} ...."
     mv jaeger-tracing.yaml jaeger-tracing.template
     envsubst < jaeger-tracing.template > jaeger-tracing.yaml
