@@ -33,7 +33,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name} ...."
     helm repo add jetstack https://charts.jetstack.io
     helm repo update
-    helm upgrade cert-manager jetstack/cert-manager --namespace cert-manager --version v1.7.1 --install --create-namespace --wait --timeout 8000s --debug 
+    helm upgrade cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager --version v1.7.1 --install --create-namespace --wait --timeout 8000s --debug 
     echo "Deploying production cluster issuer to ${TF_VAR_eks_cluster_name} ...."
     mv prod-issuer.yaml prod-issuer.template
     envsubst < prod-issuer.template > prod-issuer.yaml
