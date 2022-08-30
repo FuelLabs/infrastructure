@@ -19,14 +19,10 @@ terraform init
 
 echo "Creating or updating k8s cluster now .... please don't interrupt your terminal ...."
 
-terraform plan 
-
 terraform apply -auto-approve
 
-echo $STAR
-
 echo "Please wait while your k8s cluster gets ready ...."
-sleep 600
+sleep 120
 
 echo "Now setting up your k8s cluster ..."
 
@@ -45,7 +41,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     kubectl apply -f prod-issuer.yaml
     echo "Deploying nginx ingress controller to ${TF_VAR_eks_cluster_name} ...."
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/1.21/deploy.yaml 
-    sleep 300 
+    sleep 180 
     echo "Deploying kube-prometheus helm chart to ${TF_VAR_eks_cluster_name} ...."
     cd ../monitoring/
     mv values.yaml values.template
@@ -54,7 +50,6 @@ if [ "${k8s_provider}" == "eks" ]; then
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
     helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values values.yaml --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
-    sleep 300 
     cd ../ingress/
     echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name} ...."
     mv monitoring-ingress.yaml monitoring-ingress.template
@@ -67,7 +62,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yam
     kubectl create ns logging
     kubectl apply -f logging-cluster.yaml
-    sleep 600
+    sleep 180
     kubectl apply -f logging-kibana.yaml
     cd ../fluentd/
     kubectl apply -f fluentd-cm.yaml
@@ -77,6 +72,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     rm fluentd-ds.template
     kubectl apply -f fluentd-ds.yaml
     echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name} ...."
+    cd ../elasticsearch
     mv kibana-ingress.yaml kibana-ingress.template
     envsubst < kibana-ingress.template > kibana-ingress.yaml
     rm kibana-ingress.template
@@ -85,7 +81,8 @@ if [ "${k8s_provider}" == "eks" ]; then
     cd ../tracing
     kubectl create namespace observability
     kubectl create -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
-    sleep 180
+    sleep 120 
+    kubectl get pods -n observability
 else
    echo "You have inputted a non-supported kubernetes provider in your .env"
 fi
