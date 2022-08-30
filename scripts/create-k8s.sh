@@ -59,7 +59,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name} ...."
     cd ../logging/elasticsearch
     kubectl create -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml
-    kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yam
+    kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yaml
     kubectl create ns logging
     kubectl apply -f logging-cluster.yaml
     sleep 180
