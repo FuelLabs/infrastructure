@@ -6,10 +6,10 @@ set -o nounset # abort on unbound variable
 set -o allexport && source .env && set +o allexport 
 
 if [ "${k8s_provider}" == "eks" ]; then
-    echo " ...."
     echo "Updating your kube context locally ...."
     aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
     echo "Deploying jaeger instance to ${TF_VAR_eks_cluster_name} ...."
+    cd ../tracing/
     mv jaeger-tracing.yaml jaeger-tracing.template
     envsubst < jaeger-tracing.template > jaeger-tracing.yaml
     rm jaeger-tracing.template
