@@ -78,9 +78,8 @@ if [ "${k8s_provider}" == "eks" ]; then
     rm kibana-ingress.template
     kubectl apply -f kibana-ingress.yaml
     echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name} ...."
-    cd ../tracing
     kubectl create namespace observability
-    kubectl create -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
+    kubectl apply -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
     sleep 120 
     kubectl get pods -n observability
 else
