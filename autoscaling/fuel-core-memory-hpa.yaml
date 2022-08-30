@@ -5,8 +5,8 @@ metadata:
   name: fuel-core-memory-hpa
   namespace: fuel-core
 spec:
-  maxReplicas: 3
-  minReplicas: 1
+  maxReplicas: 5
+  minReplicas: 2
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
