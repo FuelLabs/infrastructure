@@ -69,7 +69,7 @@ resource "aws_eks_node_group" "nodes" {
 
 # EKS Cluster IAM Role
 resource "aws_iam_role" "eks-cluster-iam-role" {
-  name = "${var.aws_environment}-eks-cluster-iam-role"
+  name = "${var.eks_cluster_name}-eks-cluster-iam-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -105,7 +105,7 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEC2ContainerRegistryRe
 
 # EKS Node IAM Role
 resource "aws_iam_role" "eks-nodegroup-iam-role" {
-  name = "${var.aws_environment}-eks-managed-group-node-role"
+  name = "${var.eks_cluster_name}-eks-managed-group-node-role"
 
   assume_role_policy = <<EOF
 {
@@ -153,7 +153,7 @@ resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   role = aws_iam_role.eks-nodegroup-iam-role.name
 }
 resource "aws_iam_policy" "cluster_autoscaler_policy" {
-  name        = "${var.aws_environment}-ClusterAutoScaler"
+  name        = "${var.eks_cluster_name}-ClusterAutoScaler"
   description = "Give the worker node running the Cluster Autoscaler access"
 policy = <<EOF
 {
@@ -238,7 +238,7 @@ resource "aws_eks_identity_provider_config" "eks_identity_provider" {
 
   oidc {
     client_id                     = "sts.amazonaws.com"
-    identity_provider_config_name = "${var.aws_environment}-eks-oidc"
+    identity_provider_config_name = "${var.eks_cluster_name}-eks-oidc"
     issuer_url                    = "${module.eks.cluster_oidc_issuer_url}"
   }
 }
