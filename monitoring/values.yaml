@@ -288,7 +288,7 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: '${slack_api_url}'
+      slack_api_url: 'https://hooks.slack.com/services/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'
     inhibit_rules:
       - source_matchers:
           - 'severity = critical'
@@ -310,7 +310,7 @@ alertmanager:
     receivers:
     - name: 'slack-notifications'
       slack_configs:
-      - channel: '${slack_channel_name}'
+      - channel: '#fuel-prod-alerts'
         send_resolved: true
     templates:
     - '/etc/alertmanager/config/*.tmpl'
