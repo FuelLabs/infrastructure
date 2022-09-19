@@ -23,11 +23,22 @@ module "eks" {
   cluster_security_group_id = aws_security_group.eks-cluster-sg.id
 }
 
-# EKS Cluster CoreDNS Cluster AddOn 
+# EKS Cluster CoreDNS Cluster Add On 
 resource "aws_eks_addon" "core_dns" {
   cluster_name = module.eks.cluster_id
   addon_name        = "coredns"
   addon_version     = "v1.8.4-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.nodes,
+  ]
+}
+
+# EKS Cluster EBS CSI Driver Cluster Add On 
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name = module.eks.cluster_id
+  addon_name        = "aws-ebs-csi-driver"
+  addon_version     = "v1.11.2-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -121,6 +132,11 @@ resource "aws_iam_role" "eks-nodegroup-iam-role" {
   ]
 }
 EOF
+}
+
+resource "aws_iam_role_policy_attachment" "EC2_Access" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+  role       = aws_iam_role.eks-nodegroup-iam-role.name
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
