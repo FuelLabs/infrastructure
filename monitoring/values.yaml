@@ -310,7 +310,7 @@ alertmanager:
     receivers:
     - name: 'slack-notifications'
       slack_configs:
-      - channel: '#fuel-alerts'
+      - channel: '${slack_channel_name}'
         send_resolved: true
     templates:
     - '/etc/alertmanager/config/*.tmpl'
