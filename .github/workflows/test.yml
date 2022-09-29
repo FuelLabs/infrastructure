@@ -7,7 +7,7 @@ on:
 jobs:
   #  TEST
   test:
-    if: !contains( github.ref, 'preview/' )
+    if: contains( github.ref, "preview/")
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
