@@ -8,7 +8,7 @@ jobs:
   #  TEST
   test:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/preview/')
+    if: github.ref == 'refs/heads/preview*'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
