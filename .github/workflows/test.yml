@@ -7,9 +7,13 @@ on:
 jobs:
   #  TEST
   test:
-    if: contains( github.ref, "preview")
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/preview/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      
+
+       
+        
       
