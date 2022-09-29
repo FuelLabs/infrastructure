@@ -1,0 +1,15 @@
+name: Testing CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  #  TEST
+  test:
+    if: !contains( github.ref, 'preview/' )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
