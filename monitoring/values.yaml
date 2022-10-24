@@ -43,7 +43,7 @@ defaultRules:
     kubeApiserverHistogram: true
     kubeApiserverSlos: true
     kubeControllerManager: false
-    kubelet: true
+    kubelet: false
     kubeProxy: false
     kubePrometheusGeneral: true
     kubePrometheusNodeRecording: true
