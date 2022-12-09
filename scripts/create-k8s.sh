@@ -41,47 +41,6 @@ if [ "${k8s_provider}" == "eks" ]; then
     kubectl apply -f prod-issuer.yaml
     echo "Deploying nginx ingress controller to ${TF_VAR_eks_cluster_name} ...."
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml
-    sleep 180 
-    echo "Deploying kube-prometheus helm chart to ${TF_VAR_eks_cluster_name} ...."
-    cd ../monitoring/
-    mv values.yaml values.template
-    envsubst < values.template > values.yaml
-    rm values.template
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
-    helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values values.yaml --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
-    cd ../ingress/
-    echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name} ...."
-    mv monitoring-ingress.yaml monitoring-ingress.template
-    envsubst < monitoring-ingress.template > monitoring-ingress.yaml
-    rm monitoring-ingress.template
-    kubectl apply -f monitoring-ingress.yaml
-    echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name} ...."
-    cd ../logging/elasticsearch
-    kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml
-    kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/operator.yaml
-    kubectl create ns logging || true
-    kubectl apply -f logging-cluster.yaml
-    sleep 120
-    kubectl apply -f logging-kibana.yaml
-    cd ../fluentd/
-    kubectl apply -f fluentd-cm.yaml
-    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
-    mv fluentd-ds.yaml fluentd-ds.template
-    envsubst < fluentd-ds.template > fluentd-ds.yaml
-    rm fluentd-ds.template
-    kubectl apply -f fluentd-ds.yaml
-    echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name} ...."
-    cd ../elasticsearch
-    mv kibana-ingress.yaml kibana-ingress.template
-    envsubst < kibana-ingress.template > kibana-ingress.yaml
-    rm kibana-ingress.template
-    kubectl apply -f kibana-ingress.yaml
-    echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name} ...."
-    kubectl create ns observability || true
-    kubectl apply -f https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml -n observability
-    sleep 120 
-    kubectl get pods -n observability
 else
    echo "You have inputted a non-supported kubernetes provider in your .env"
 fi
