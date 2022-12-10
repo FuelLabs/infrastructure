@@ -27,7 +27,7 @@ module "eks" {
 resource "aws_eks_addon" "core_dns" {
   cluster_name = module.eks.cluster_id
   addon_name        = "coredns"
-  addon_version     = "v1.8.4-eksbuild.1"
+  addon_version     = "1.8.7-eksbuild.3"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
