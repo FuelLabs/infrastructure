@@ -255,7 +255,6 @@ ingress {
   }
 }
 
-
 resource "aws_eks_identity_provider_config" "eks_identity_provider" {
   cluster_name = "${var.eks_cluster_name}"
 
