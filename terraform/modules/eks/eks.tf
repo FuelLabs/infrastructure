@@ -140,6 +140,11 @@ resource "aws_iam_role_policy_attachment" "EC2_Access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
   role       = aws_iam_role.eks-nodegroup-iam-role.name
 }
+    
+resource "aws_iam_role_policy_attachment" "EBS_CSI_Driver_Access" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.eks-nodegroup-iam-role.name
+}
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
