@@ -9,9 +9,11 @@ module "eks" {
   cluster_endpoint_public_access  = true
 
   cluster_addons = {
-    kube-proxy = {}
+    kube-proxy = {
+      most_recent = true
+    }
     vpc-cni = {
-      resolve_conflicts = "OVERWRITE"
+      most_recent = true
     }
   }
 
@@ -27,7 +29,7 @@ module "eks" {
 resource "aws_eks_addon" "core_dns" {
   cluster_name = module.eks.cluster_id
   addon_name        = "coredns"
-  addon_version     = "v1.8.4-eksbuild.1"
+  addon_version     = "v1.8.7-eksbuild.3"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -38,7 +40,7 @@ resource "aws_eks_addon" "core_dns" {
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name = module.eks.cluster_id
   addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.11.2-eksbuild.1"
+  addon_version     = "v1.13.0-eksbuild.3"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -136,6 +138,11 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "EC2_Access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+  role       = aws_iam_role.eks-nodegroup-iam-role.name
+}
+    
+resource "aws_iam_role_policy_attachment" "EBS_CSI_Driver_Access" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.eks-nodegroup-iam-role.name
 }
 
@@ -247,7 +254,6 @@ ingress {
     "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
   }
 }
-
 
 resource "aws_eks_identity_provider_config" "eks_identity_provider" {
   cluster_name = "${var.eks_cluster_name}"
