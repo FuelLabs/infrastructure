@@ -835,6 +835,15 @@ grafana:
     ##
     pspEnabled: false
 
+  persistence:
+    type: pvc
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
+
   ingress:
     ## If true, Grafana Ingress will be created
     ##
