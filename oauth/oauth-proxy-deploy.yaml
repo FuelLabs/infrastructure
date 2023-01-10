@@ -1,0 +1,49 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    k8s-app: oauth
+  name: oauth
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth
+    spec:
+      containers:
+      - name: oauth
+        image: quay.io/pusher/oauth2_proxy:v4.1.0-amd64
+        args:
+        - --provider={email_provider}
+        - --email-domain=${email_domain}
+        - --upstream=file:///dev/null
+        - --http-address=0.0.0.0:4180
+        - --cookie-domain=${grafana_ingress_dns}
+        - --whitelist-domain={grafana_ingress_dns_domain}
+        - --cookie-refresh=1h
+        - --client-id={email_client_id}
+        - --client-secret={email_client_secret}
+        - --cookie-secret=${random_cookie_secret}
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: oauth 
+  name: oauth
+  namespace: monitoring
+spec:
+  ports:
+  - name: oauth
+    port: 4180
+    targetPort: 4180
+  selector:
+    k8s-app: oauth

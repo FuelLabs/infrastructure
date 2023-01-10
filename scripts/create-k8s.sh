@@ -56,6 +56,14 @@ if [ "${k8s_provider}" == "eks" ]; then
     envsubst < monitoring-ingress.template > monitoring-ingress.yaml
     rm monitoring-ingress.template
     kubectl apply -f monitoring-ingress.yaml
+    echo "Deploying AWS EKS Container Insights to ${TF_VAR_eks_cluster_name} ...."
+    export ClusterName=${TF_VAR_eks_cluster_name}
+    export RegionName=<${TF_VAR_aws_region}
+    export FluentBitHttpPort='2020'
+    export FluentBitReadFromHead='Off'
+    [[ ${FluentBitReadFromHead} = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
+    [[ -z ${FluentBitHttpPort} ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
+    curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
     echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name} ...."
     cd ../logging/elasticsearch
     kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml

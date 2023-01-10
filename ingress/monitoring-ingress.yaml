@@ -21,4 +21,4 @@ spec:
   tls:
     - hosts:
         - ${grafana_ingress_dns}
-      secretName: letsencrypt-prod
+      secretName: grafana-letsencrypt-secret
