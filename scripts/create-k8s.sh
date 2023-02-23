@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# This script may be used to initialize and deploy our EKS Kubernetes cluster.
+# This script may be used to initialize and deploy our EKS Kubernetes cluster. At some point, however, we
+# should replace this thing with an Ansible playbook.
 
 set -o pipefail
 set -o errexit
@@ -35,8 +36,7 @@ usage() {
     cat <<EOF
 Usage: $progname [OPTIONS]
 
-This script may be used to initialize and deploy our EKS Kubernetes
-cluster.
+This script may be used to initialize and deploy our EKS Kubernetes cluster.
 
 Options:
   -h   Show this message and exit.
