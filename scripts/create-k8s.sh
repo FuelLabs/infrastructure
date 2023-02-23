@@ -3,8 +3,7 @@
 # This script may be used to initialize and deploy our EKS Kubernetes cluster. At some point, however, we
 # should replace this thing with an Ansible playbook.
 
-set -o pipefail
-set -o errexit
+set -o pipefail -o errexit
 
 readonly progname=$(basename $0)
 
@@ -256,6 +255,10 @@ sanity_checks() {
     done
 }
 
+exit_handler() {
+    >&2 echo "$progname: panic: non-recoverable error!"
+}
+
 # --- main() ---
 
 while getopts "h" opt ; do
@@ -266,6 +269,8 @@ while getopts "h" opt ; do
 done
 
 shift $((OPTIND - 1))
+
+trap exit_handler ERR
 
 sanity_checks
 
