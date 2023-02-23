@@ -256,7 +256,10 @@ sanity_checks() {
 }
 
 exit_handler() {
-    >&2 echo "$progname: panic: non-recoverable error!"
+    local rc="$1"
+    local line="$2"
+    
+    >&2 echo "$progname: panic: non-recoverable error at line $line: exit code $rc."
 }
 
 # --- main() ---
@@ -270,7 +273,7 @@ done
 
 shift $((OPTIND - 1))
 
-trap exit_handler ERR
+trap 'exit_handler $? $LINENO'  ERR
 
 sanity_checks
 
