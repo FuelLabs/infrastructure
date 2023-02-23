@@ -72,11 +72,11 @@ setup_terraform() {
 
     terraform init
 
-    echo "Creating or updating k8s cluster now. Please don't interrupt your terminal!"
+    echo "Creating or updating K8s cluster now. Please don't interrupt your terminal!"
 
     terraform apply -auto-approve
 
-    echo "Please wait while your k8s cluster gets ready..."
+    echo "Please wait while your K8s cluster is configured."
 
     popd
 }
@@ -86,18 +86,18 @@ setup_kube_context() {
     
     pushd $ingress_dir
 
-    echo "Updating your kube context locally..."
+    echo "Updating local kube context..."
     
     aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
     
-    echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name}."
+    echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name}..."
 
     helm repo add jetstack $helm_url
     helm repo update
 
     helm upgrade cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager --version $certman_version --install --create-namespace --wait --timeout 8000s --debug 
 
-    echo "Deploying production cluster issuer to ${TF_VAR_eks_cluster_name}."
+    echo "Deploying production cluster issuer to ${TF_VAR_eks_cluster_name}..."
 
     mv $issuer prod-issuer.template
     
@@ -126,7 +126,7 @@ setup_prometheus() {
     mv $values_env values.template
     envsubst < values.template > $values_env
 
-    rm values.template
+    rm -f values.template
 
     helm repo add prometheus-community $prometheus_helm_url
     helm repo update
