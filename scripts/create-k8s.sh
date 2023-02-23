@@ -259,7 +259,7 @@ exit_handler() {
     local rc="$1"
     local line="$2"
     
-    >&2 echo "$progname: panic: non-recoverable error at line $line: exit code $rc."
+    >&2 echo "$progname: non-recoverable error at line $line ($rc)."
 }
 
 # --- main() ---
