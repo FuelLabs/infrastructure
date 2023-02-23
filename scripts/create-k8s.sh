@@ -19,7 +19,17 @@ readonly certman_version='v1.7.1'
 readonly nginx_url='https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml'
 readonly prometheus_helm_url='https://prometheus-community.github.io/helm-charts'
 
+readonly cloudwatch_url='https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml'
+
+readonly elastic_crds_url='https://download.elastic.co/downloads/eck/2.2.0/crds.yaml'
+readonly elastic_op_url='https://download.elastic.co/downloads/eck/2.2.0/operator.yaml'
+
+readonly jaeger_url='https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml'
+
 : ${TF_VAR_eks_cluster_name:?unbound}
+: ${TF_VAR_aws_region:?unbound}
+: ${FluentBitReadFromHead:?unbound}
+: ${FluentBitHttpPort:?unbound}
 
 usage() {
     cat <<EOF
@@ -53,7 +63,7 @@ popd() {
     command popd > /dev/null
 }
 
-init_terraform() {
+setup_terraform() {
     pushd $tform_env
 
     mv state.tf state.template
@@ -89,8 +99,6 @@ setup_kube_context() {
 
     echo "Deploying production cluster issuer to ${TF_VAR_eks_cluster_name}."
 
-    [[ -f $issuer ]] || fail "${FUNCNAME[0]}: $issuer is missing"
-
     mv $issuer prod-issuer.template
     
     envsubst < prod-issuer.template > $issuer
@@ -115,8 +123,6 @@ setup_prometheus() {
 
     pushd monitoring
 
-    [[ -e $values_env ]] || fail "${FUNCNAME[0]}: $values_env is missing"
-    
     mv $values_env values.template
     envsubst < values.template > $values_env
 
@@ -129,9 +135,106 @@ setup_prometheus() {
     popd
 }
 
+setup_monitoring() {
+    local mon_ingress='monitoring-ingress.yaml'
+    
+    pushd ingress
+
+    echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name}..."
+
+    mv $mon_ingress monitoring-ingress.template
+    envsubst < monitoring-ingress.template > $mon_ingress
+    
+    rm -f monitoring-ingress.template
+
+    kubectl apply -f $mon_ingress
+
+    popd
+}
+
+setup_eks_container() {
+    echo "Deploying AWS EKS Container Insights to ${TF_VAR_eks_cluster_name}..."
+    
+    export ClusterName=${TF_VAR_eks_cluster_name}
+    export RegionName=<${TF_VAR_aws_region}
+    export FluentBitHttpPort='2020'
+    export FluentBitReadFromHead='Off'
+
+    [[ ${FluentBitReadFromHead} = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
+    [[ -z ${FluentBitHttpPort} ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
+    
+    curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
+
+}
+
+setup_elastic() {
+    local log_cluster='logging-cluster.yaml'
+    local log_kibana='logging-kibana.yaml'
+    local fluentd_cm='fluentd-cm.yaml'
+    local fluentd_ds='fluentd_ds.yaml'
+
+    echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name}..."
+
+    pushd logging/elasticsearch
+
+    kubectl apply -f $elastic_crds_url
+    kubectl apply -f $elastic_op_url
+
+    kubectl create ns logging || true
+    kubectl apply -f $log_cluster
+
+    sleep 120  # Need a better method to determine readiness
+
+    kubectl apply -f $log_kibana
+
+    popd
+    pushd logging/fluentd
+
+    kubectl apply -f $fluentd_cm
+    
+    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
+
+    mv $fluentd_ds fluentd-ds.template
+    envsubst < fluentd-ds.template > $fluentd_ds
+
+    rm -f fluentd-ds.template
+
+    kubectl apply -f $fluentd_ds
+
+    popd
+}
+
+setup_kibana() {
+    local ki_ingress='kibana-ingress.yaml'
+    
+    echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name}..."
+
+    pushd elasticsearch
+
+    mv $ki_ingress kibana-ingress.template
+    envsubst < kibana-ingress.template > $ki_ingress
+    rm -f kibana-ingress.template
+    
+    kubectl apply -f $ki_ingress
+
+    echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name}..."
+    
+    kubectl create ns observability || true
+    kubectl apply -f $jaeger_url -n observability
+
+    sleep 120  # we need a better way to determine readiness
+
+    kubectl get pods -n observability
+
+    popd
+}
+
 sanity_checks() {
-    [[ -d $tform_env ]] || fail "the terrform environment does not exist: $tform_env"
-    [[ -d $ingress_dir ]] || fail "the ingress directory does not exist: $ingress_dir"
+    # assuming these directories exist, we're likely ok.
+    
+    for dir in ingress logging monitoring scripts terraform ; do
+        [[ -d $dir ]] || fail "${FUNCNAME[0]: $dir is missing"
+    done
 }
 
 # --- main() ---
@@ -146,7 +249,15 @@ done
 shift $((OPTIND - 1))
 
 sanity_checks
-init_terraform
+
+setup_terraform
+setup_kube_context
+setup_nginx
+setup_prometheus
+setup_monitoring
+setup_eks_container
+setup_elastic
+setup_kibana
 
 exit 0
 
@@ -210,12 +321,14 @@ if [ "${k8s_provider}" == "eks" ]; then
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
     helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values values.yaml --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
+
     cd ../ingress/
     echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name} ...."
     mv monitoring-ingress.yaml monitoring-ingress.template
     envsubst < monitoring-ingress.template > monitoring-ingress.yaml
     rm monitoring-ingress.template
     kubectl apply -f monitoring-ingress.yaml
+
     echo "Deploying AWS EKS Container Insights to ${TF_VAR_eks_cluster_name} ...."
     export ClusterName=${TF_VAR_eks_cluster_name}
     export RegionName=<${TF_VAR_aws_region}
@@ -224,6 +337,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     [[ ${FluentBitReadFromHead} = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
     [[ -z ${FluentBitHttpPort} ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
     curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
+
     echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name} ...."
     cd ../logging/elasticsearch
     kubectl apply -f https://download.elastic.co/downloads/eck/2.2.0/crds.yaml
@@ -239,6 +353,7 @@ if [ "${k8s_provider}" == "eks" ]; then
     envsubst < fluentd-ds.template > fluentd-ds.yaml
     rm fluentd-ds.template
     kubectl apply -f fluentd-ds.yaml
+    
     echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name} ...."
     cd ../elasticsearch
     mv kibana-ingress.yaml kibana-ingress.template
