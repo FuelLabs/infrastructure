@@ -27,16 +27,17 @@ readonly elastic_op_url='https://download.elastic.co/downloads/eck/2.2.0/operato
 
 readonly jaeger_url='https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml'
 
-: ${TF_VAR_eks_cluster_name:?unbound}
-: ${TF_VAR_aws_region:?unbound}
-: ${FluentBitReadFromHead:?unbound}
-: ${FluentBitHttpPort:?unbound}
-
 usage() {
     cat <<EOF
 Usage: $progname [OPTIONS]
 
-This script may be used to initialize and deploy our EKS Kubernetes cluster.
+This script may be used to initialize and deploy our EKS Kubernetes cluster. The following
+environment variables are expected to be defined for this script to function properly:
+
+  - TF_VAR_eks_cluster
+  - TF_VAR_aws_region
+  - FluentBitReadFromHead
+  - FluentBitHttpPort
 
 Options:
   -h   Show this message and exit.
@@ -237,11 +238,21 @@ show_pods() {
     kubectl get pods -n observability
 }
 
+ensure_env() {
+    : ${TF_VAR_eks_cluster_name:?unbound}
+    : ${TF_VAR_eks_cluster_name:?unbound}
+    : ${TF_VAR_aws_region:?unbound}
+    : ${FluentBitReadFromHead:?unbound}
+    : ${FluentBitHttpPort:?unbound}
+}
+
 sanity_checks() {
+    ensure_env
+    
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
-        [[ -d $dir ]] || fail "${FUNCNAME[0]: $dir is missing"
+        [[ -d $dir ]] || fail "${FUNCNAME[0]}: $dir is missing"
     done
 }
 
