@@ -251,11 +251,11 @@ sanity_checks() {
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
-        [[ -d $dir ]] || fail "${FUNCNAME[0]}: $dir is missing"
+        [[ -d $dir ]] || fail "${FUNCNAME[0]}: $dir is missing from $k8s_root!"
     done
 }
 
-exit_handler() {
+error_handler() {
     local rc="$1"
     local line="$2"
     
@@ -273,7 +273,7 @@ done
 
 shift $((OPTIND - 1))
 
-trap 'exit_handler $? $LINENO'  ERR
+trap 'error_handler $? $LINENO' ERR
 
 sanity_checks
 
