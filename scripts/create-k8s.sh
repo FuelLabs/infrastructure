@@ -247,7 +247,9 @@ ensure_env() {
 
 sanity_checks() {
     ensure_env
-    
+
+    [[ $k8s_provider == eks ]] || fail "currently, only 'eks' is supported as the Kubernetes provider"
+
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
