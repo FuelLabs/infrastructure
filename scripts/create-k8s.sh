@@ -19,7 +19,8 @@ readonly certman_version='v1.7.1'
 readonly nginx_url='https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml'
 readonly prometheus_helm_url='https://prometheus-community.github.io/helm-charts'
 
-readonly cloudwatch_url='https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml'
+readonly cloudwatch_k8s_url='https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest'
+readonly cloudwatch_url="$cloudwatch_k8s_url/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml"
 
 readonly elastic_crds_url='https://download.elastic.co/downloads/eck/2.2.0/crds.yaml'
 readonly elastic_op_url='https://download.elastic.co/downloads/eck/2.2.0/operator.yaml'
@@ -32,14 +33,17 @@ Usage: $progname [OPTIONS]
 
 This script may be used to initialize and deploy our EKS Kubernetes cluster. The following
 environment variables are expected to be defined for this script to function properly:
-
   - TF_VAR_eks_cluster
   - TF_VAR_aws_region
   - FluentBitReadFromHead
   - FluentBitHttpPort
+  - k8s_provider (optional; defaults to 'eks')
 
 Options:
   -h   Show this message and exit.
+
+Notes:
+  - At present, only 'eks' is supported for k8s_provider.
 EOF
 
     exit 1
