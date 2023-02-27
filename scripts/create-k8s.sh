@@ -180,7 +180,7 @@ s/{{region_name}}/'${RegionName}'/
 s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/
 s/{{http_server_port}}/"'${FluentBitHttpPort}'"/
 s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/
-s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"
+s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/
 EOF
                      <<< $cw_data)
 
