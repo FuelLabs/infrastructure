@@ -43,6 +43,15 @@ environment variables are expected to be defined for this script to function pro
   - k8s_provider (optional; defaults to 'eks')
 
 Options:
+  -c   Set up the kube context only.
+  -e   Set up EKS only.
+  -j   Set up Jaeger only.
+  -k   Set up Kibana only.
+  -l   Set up Elastic only.
+  -m   Set up monitoring only.
+  -n   Set up nginx only.
+  -p   Set up Prometheus only.
+  -t   Set up Terraform only.
   -h   Show this message and exit.
 
 Notes:
@@ -284,10 +293,33 @@ error_handler() {
     >&2 echo "$progname: non-recoverable error at line $line ($rc)."
 }
 
+setup_all() {
+    setup_terraform
+    setup_kube_context
+    setup_nginx
+    setup_prometheus
+    setup_monitoring
+    setup_eks_container
+    setup_elastic
+    setup_kibana
+    setup_jaeger
+}
+
 # --- main() ---
 
-while getopts "h" opt ; do
+task='all'
+
+while getopts "cejklmnpth" opt ; do
     case $opt in
+        c) task=context ;;
+        e) task=eks ;;
+        j) task=jaeger ;;
+        k) task=kibana ;;
+        l) task=elastic ;;
+        m) task=monitor ;;
+        n) task=nginx ;;
+        p) task=prometheus ;;
+        t) task=terraform ;;
         h) usage ;;
         *) usage ;;
     esac
@@ -299,15 +331,18 @@ trap 'error_handler $? $LINENO' ERR
 
 sanity_checks
 
-setup_terraform
-setup_kube_context
-setup_nginx
-setup_prometheus
-setup_monitoring
-setup_eks_container
-setup_elastic
-setup_kibana
-setup_jaeger
+case $task in
+    terraform) setup_terraform ;;
+    context) setup_kube_context ;;
+    nginx) setup_nginx ;;
+    prometheus) setup_prometheus ;;
+    monitor) setup_monitoring ;;
+    eks) setup_eks_container ;;
+    elastic) setup_elastic ;;
+    kibana) setup_kibana ;;
+    jaeger) setup_jaeger ;;
+    all) setup_all ;;
+esac
 
 show_pods
 
