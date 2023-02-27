@@ -173,9 +173,18 @@ setup_eks_container() {
     # this sed expression could stand some simplification
 
     local cw_data=$(curl --silent $cloudwatch_url)
-    local kdata=$(sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' <<< $cw_data)
 
-    echo $kdata | kubectl apply -f -
+    local kubedata=$(sed <<EOF
+s/{{cluster_name}}/'${ClusterName}'/
+s/{{region_name}}/'${RegionName}'/
+s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/
+s/{{http_server_port}}/"'${FluentBitHttpPort}'"/
+s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/
+s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"
+EOF
+                     <<< $cw_data)
+
+    echo $kubedata | kubectl apply -f -
 }
 
 setup_elastic() {
