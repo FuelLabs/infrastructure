@@ -52,6 +52,14 @@ EOF
     exit 1
 }
 
+panic() {
+    local msg="$@"
+
+    >&2 echo "$progname: ${FUNCNAME[1]}: $msg"
+
+    exit 1
+}
+
 fail() {
     local msg="$@"
 
@@ -172,7 +180,7 @@ setup_eks_container() {
 
     local cw_data=$(curl --silent $cloudwatch_url)
 
-    [[ -n $cw_data ]] || fail "${FUNCNAME[0]}: nothing retrieved from $cloudwatch_url"
+    [[ -n $cw_data ]] || fail "nothing retrieved from $cloudwatch_url"
 
     local kubedata=$(sed -e 's/{{cluster_name}}/'${ClusterName}'/' -e 's/{{region_name}}/'${RegionName}'/' -e 's/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/' \
                          -e 's/{{http_server_port}}/"'${FluentBitHttpPort}'"/' -e 's/{{read_from_head}}/"'${FluentBitReadFromHead}'"/' \
@@ -262,12 +270,12 @@ ensure_env() {
 sanity_checks() {
     ensure_env
 
-    [[ $k8s_provider == eks ]] || fail "currently, only 'eks' is supported as the Kubernetes provider"
+    [[ $k8s_provider == eks ]] || panic "currently, only 'eks' is supported as the Kubernetes provider"
 
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
-        [[ -d $dir ]] || fail "${FUNCNAME[0]}: $dir is missing from $k8s_root!"
+        [[ -d $dir ]] || panic "$dir is missing from $k8s_root!"
     done
 }
 
