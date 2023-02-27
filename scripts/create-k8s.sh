@@ -174,7 +174,7 @@ setup_eks_container() {
 
     [[ -n $cw_data ]] || fail "${FUNCNAME[0]}: nothing retrieved from $cloudwatch_url"
 
-    local kubedata=$(sed <<EOF
+    local kubedata=$(sed -f - <<EOF
 s/{{cluster_name}}/'${ClusterName}'/
 s/{{region_name}}/'${RegionName}'/
 s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/
