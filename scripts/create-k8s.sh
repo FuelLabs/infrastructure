@@ -205,7 +205,7 @@ setup_elastic() {
     kubectl create ns logging || true
     kubectl apply -f $log_cluster
 
-    sleep 120  # Need a better method to determine readiness
+    sleep 120  # Need a better way to determine readiness
 
     kubectl apply -f $log_kibana
 
