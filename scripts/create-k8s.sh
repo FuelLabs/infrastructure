@@ -3,6 +3,9 @@
 # This script may be used to initialize and deploy our EKS Kubernetes cluster. At some point, however, we
 # should replace this thing with an Ansible playbook.
 
+# It would be nice to provide reasonable defaults for the half-dozen environment variables expected to be
+# bound before this script is run; however, that might not be possible. Needs investigation.
+
 set -o pipefail -o errexit
 
 readonly progname=$(basename $0)
