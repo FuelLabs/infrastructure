@@ -79,11 +79,13 @@ popd() {
 }
 
 setup_terraform() {
+    local tstate=state.tf
+    
     pushd $tform_env
 
-    mv state.tf state.template
-    envsubst < state.template > state.tf
-    rm state.template 
+    mv $tstate state.template
+    envsubst < state.template > $tstate
+    rm -f state.template 
 
     terraform init
 
