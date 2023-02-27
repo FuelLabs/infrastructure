@@ -170,8 +170,6 @@ setup_eks_container() {
     [[ ${FluentBitReadFromHead} = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
     [[ -z ${FluentBitHttpPort} ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
 
-    # this sed expression could stand some simplification
-
     local cw_data=$(curl --silent $cloudwatch_url)
 
     [[ -n $cw_data ]] || fail "${FUNCNAME[0]}: nothing retrieved from $cloudwatch_url"
