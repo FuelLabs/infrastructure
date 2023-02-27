@@ -52,18 +52,14 @@ EOF
     exit 1
 }
 
-panic() {
-    local msg="$@"
-
-    >&2 echo "$progname: ${FUNCNAME[1]}: $msg"
-
-    exit 1
-}
-
 fail() {
+    local funcname=''
+    
+    [[ $1 == -v ]] && { funcname="${FUNCNAME[1]}: "; shift; }
+    
     local msg="$@"
 
-    >&2 echo "$progname: $msg"
+    >&2 echo "$progname: $funcname $msg"
 
     exit 1
 }
@@ -272,12 +268,12 @@ ensure_env() {
 sanity_checks() {
     ensure_env
 
-    [[ $k8s_provider == eks ]] || panic "currently, only 'eks' is supported as the Kubernetes provider"
+    [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
 
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
-        [[ -d $dir ]] || panic "$dir is missing from $k8s_root!"
+        [[ -d $dir ]] || fail -v "$dir is missing from $k8s_root!"
     done
 }
 
