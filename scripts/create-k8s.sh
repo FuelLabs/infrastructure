@@ -182,8 +182,8 @@ setup_eks_container() {
     export FluentBitHttpPort='2020'
     export FluentBitReadFromHead='Off'
 
-    [[ ${FluentBitReadFromHead} = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
-    [[ -z ${FluentBitHttpPort} ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
+    [[ $FluentBitReadFromHead = 'On' ]] && $FluentBitReadFromTail='Off'|| $FluentBitReadFromTail='On'
+    [[ -z $FluentBitHttpPort ]] && $FluentBitHttpServer='Off' || $FluentBitHttpServer='On'
 
     local cw_data=$(curl --silent $cloudwatch_url)
 
