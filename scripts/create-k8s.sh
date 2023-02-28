@@ -12,7 +12,6 @@ readonly progname=$(basename $0)
 
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
 
-readonly tform_env=$k8s_root/terraform/environments/$k8s_provider
 readonly ingress_dir=$k8s_root/ingress
 readonly helm_url='https://charts.jetstack.io'
 readonly certman_version='v1.7.1'
@@ -85,6 +84,7 @@ popd() {
 
 setup_terraform() {
     local tstate=state.tf
+    local tform_env=$k8s_root/terraform/environments/$k8s_provider
     
     pushd $tform_env
 
