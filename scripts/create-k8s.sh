@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -x
 
 # This script may be used to initialize and deploy our EKS Kubernetes cluster. At some point, however, we
 # should replace this thing with an Ansible playbook.
