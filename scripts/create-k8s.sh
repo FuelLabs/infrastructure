@@ -11,6 +11,7 @@ set -o pipefail -o errexit -o nounset
 readonly progname=$(basename $0)
 
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
+readonly k8s_provider=${k8s_provider:-eks}
 
 readonly ingress_dir=$k8s_root/ingress
 readonly helm_url='https://charts.jetstack.io'
@@ -321,8 +322,6 @@ done
 shift $((OPTIND - 1))
 
 trap 'error_handler $? $LINENO' ERR
-
-# sanity_checks
 
 case $task in
     all) setup_all ;;
