@@ -342,6 +342,7 @@ case $task in
     kibana) setup_kibana ;;
     jaeger) setup_jaeger ;;
     all) setup_all ;;
+    *) usage ;;
 esac
 
 show_pods
