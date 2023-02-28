@@ -95,6 +95,8 @@ setup_terraform() {
     envsubst < state.template > $tstate
     rm -f state.template 
 
+    echo "Initializing terraform environment..."
+    
     terraform init
 
     echo "Creating or updating K8s cluster now. Please don't interrupt your terminal!"
