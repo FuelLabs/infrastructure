@@ -277,7 +277,7 @@ ensure_env() {
 }
 
 sanity_checks() {
-    # ensure_env
+    ensure_env
 
     [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
 
