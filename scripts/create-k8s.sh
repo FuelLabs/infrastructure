@@ -34,8 +34,10 @@ usage() {
     cat <<EOF
 Usage: $progname [OPTIONS]
 
-This script may be used to initialize and deploy our EKS Kubernetes cluster. The following
-environment variables are expected to be defined for this script to function properly:
+This script may be used to initialize and deploy our EKS Kubernetes cluster. By default, all setup tasks
+are run. This may be controlled via the use of command-line arguments.
+
+The following environment variables are expected to be defined for this script to function properly:
   - TF_VAR_eks_cluster
   - TF_VAR_aws_region
   - FluentBitReadFromHead
