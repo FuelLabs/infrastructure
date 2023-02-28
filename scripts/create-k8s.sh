@@ -322,7 +322,7 @@ shift $((OPTIND - 1))
 
 trap 'error_handler $? $LINENO' ERR
 
-sanity_checks
+# sanity_checks
 
 case $task in
     all) setup_all ;;
