@@ -10,6 +10,10 @@ set -o pipefail -o errexit -o nounset
 
 readonly progname=$(basename $0)
 
+set -o allexport
+source .env
+set +o allexport
+
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
 readonly k8s_provider=${k8s_provider:-eks}
 
@@ -183,7 +187,7 @@ setup_eks_container() {
     echo "Deploying AWS EKS Container Insights to ${TF_VAR_eks_cluster_name}..."
     
     export ClusterName=${TF_VAR_eks_cluster_name}
-    export RegionName=<${TF_VAR_aws_region}
+    export RegionName=${TF_VAR_aws_region}
     export FluentBitHttpPort='2020'
     export FluentBitReadFromHead='Off'
 
