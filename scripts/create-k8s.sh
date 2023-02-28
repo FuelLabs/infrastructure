@@ -337,6 +337,7 @@ trap 'error_handler $? $LINENO' ERR
 sanity_checks
 
 case $task in
+    all) setup_all ;;
     terraform) setup_terraform ;;
     context) setup_kube_context ;;
     nginx) setup_nginx ;;
@@ -346,7 +347,6 @@ case $task in
     elastic) setup_elastic ;;
     kibana) setup_kibana ;;
     jaeger) setup_jaeger ;;
-    all) setup_all ;;
     *) usage ;;
 esac
 
