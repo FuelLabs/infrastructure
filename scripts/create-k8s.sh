@@ -83,6 +83,8 @@ popd() {
 }
 
 setup_terraform() {
+    [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
+
     local tstate=state.tf
     local tform_env=$k8s_root/terraform/environments/$k8s_provider
     
@@ -270,8 +272,6 @@ show_pods() {
 }
 
 sanity_checks() {
-    [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
-
     # assuming these directories exist, we're likely ok.
     
     for dir in ingress logging monitoring scripts terraform ; do
