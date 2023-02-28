@@ -6,7 +6,7 @@
 # It would be nice to provide reasonable defaults for the half-dozen environment variables expected to be
 # bound before this script is run; however, that might not be possible. Needs investigation.
 
-set -o pipefail -o errexit
+set -o pipefail -o errexit -o nounset
 
 readonly progname=$(basename $0)
 
@@ -271,14 +271,7 @@ show_pods() {
     kubectl get pods -n observability
 }
 
-ensure_env() {
-    [[ -n $TF_VAR_eks_cluster_name ]] || fail -v "TF_VAR_eks_cluster_name is unbound!"
-    [[ -n $TF_VAR_aws_region ]] || fail -v "TF_VAR_aws_region is unbound!"
-}
-
 sanity_checks() {
-    ensure_env
-
     [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
 
     # assuming these directories exist, we're likely ok.
