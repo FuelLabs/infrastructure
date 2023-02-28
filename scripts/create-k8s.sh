@@ -272,15 +272,12 @@ show_pods() {
 }
 
 ensure_env() {
-    : ${TF_VAR_eks_cluster_name:?unbound}
-    : ${TF_VAR_eks_cluster_name:?unbound}
-    : ${TF_VAR_aws_region:?unbound}
-    : ${FluentBitReadFromHead:?unbound}
-    : ${FluentBitHttpPort:?unbound}
+    [[ -n $TF_VAR_eks_cluster_name ]] || fail -v "TF_VAR_eks_cluster_name is unbound!"
+    [[ -n $TF_VAR_aws_region ]] || fail -v "TF_VAR_aws_region is unbound!"
 }
 
 sanity_checks() {
-    ensure_env
+    # ensure_env
 
     [[ $k8s_provider == eks ]] || fail -v "currently, only 'eks' is supported as the Kubernetes provider"
 
