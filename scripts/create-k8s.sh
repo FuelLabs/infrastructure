@@ -158,7 +158,7 @@ setup_prometheus() {
 
     helm repo add prometheus-community $prometheus_helm_url
     helm repo update
-    helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values $values_env --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version '^34'
+    helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values $values_env --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
 
     popd
 }
