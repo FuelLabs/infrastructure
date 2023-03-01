@@ -25,11 +25,6 @@ readonly prometheus_helm_url='https://prometheus-community.github.io/helm-charts
 readonly cloudwatch_k8s_url='https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest'
 readonly cloudwatch_url="$cloudwatch_k8s_url/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml"
 
-readonly elastic_crds_url='https://download.elastic.co/downloads/eck/2.2.0/crds.yaml'
-readonly elastic_op_url='https://download.elastic.co/downloads/eck/2.2.0/operator.yaml'
-
-readonly jaeger_url='https://github.com/jaegertracing/jaeger-operator/releases/download/v1.34.0/jaeger-operator.yaml'
-
 usage() {
     cat <<EOF
 Usage: $progname [OPTIONS]
@@ -193,10 +188,6 @@ setup_eks_container() {
     curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
 }
 
-show_pods() {
-    kubectl get pods -n observability
-}
-
 sanity_checks() {
     [[ -n $k8s_provider ]] || fail -v "k8s_provider is unbound!"
     [[ -n $TF_VAR_eks_cluster_name ]] || fail -v "TF_VAR_eks_cluster_name is unbound!"
@@ -254,7 +245,5 @@ case $task in
     eks) setup_eks_container ;;
     *) usage ;;
 esac
-
-show_pods
 
 exit 0
