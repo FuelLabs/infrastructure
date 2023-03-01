@@ -15,7 +15,6 @@ source .env
 set +o allexport
 
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
-readonly k8s_provider=${k8s_provider:-eks}
 
 readonly ingress_dir=$k8s_root/ingress
 readonly helm_url='https://charts.jetstack.io'
