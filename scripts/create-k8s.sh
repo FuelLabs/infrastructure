@@ -122,7 +122,6 @@ setup_kube_context() {
     helm repo add jetstack $helm_url
     helm repo update
 
-    helm delete kube-prometheus --namespace monitoring
     helm upgrade cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager --version $certman_version --install --create-namespace --wait --timeout 8000s --debug 
 
     echo "Deploying production cluster issuer to $TF_VAR_eks_cluster_name..."
@@ -159,6 +158,8 @@ setup_prometheus() {
 
     helm repo add prometheus-community $prometheus_helm_url
     helm repo update
+
+    helm delete kube-prometheus --namespace monitoring
     helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values $values_env --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
 
     popd
