@@ -45,9 +45,6 @@ The following environment variables are expected to be defined for this script t
 Options:
   -c   Set up the kube context only.
   -e   Set up EKS only.
-  -j   Set up Jaeger only.
-  -k   Set up Kibana only.
-  -l   Set up Elastic only.
   -m   Set up monitoring only.
   -n   Set up nginx only.
   -p   Set up Prometheus only.
@@ -194,91 +191,6 @@ setup_eks_container() {
     [[ -z $FluentBitHttpPort ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
 
     curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
-
-    # local cw_data=$(curl $cloudwatch_url)
-
-    # [[ -n $cw_data ]] || fail "nothing retrieved from $cloudwatch_url"
-
-    # echo $cw_data
-    
-    # echo $cw_data | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
-
-    # local kubedata=$(sed -e 's/{{cluster_name}}/'${ClusterName}'/' \
-    #                      -e 's/{{region_name}}/'${RegionName}'/' \
-    #                      -e 's/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/' \
-    #                      -e 's/{{http_server_port}}/"'${FluentBitHttpPort}'"/' \
-    #                      -e 's/{{read_from_head}}/"'${FluentBitReadFromHead}'"/' \
-    #                      -e 's/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' <<< $cw_data)
-
-    # echo $kubedata | kubectl apply -f -
-}
-
-setup_elastic() {
-    local log_cluster='logging-cluster.yaml'
-    local log_kibana='logging-kibana.yaml'
-    local fluentd_cm='fluentd-cm.yaml'
-    local fluentd_ds='fluentd-ds.yaml'
-
-    echo "Deploying elasticsearch to $TF_VAR_eks_cluster_name..."
-
-    pushd ../logging/elasticsearch
-
-    kubectl apply -f $elastic_crds_url
-    kubectl apply -f $elastic_op_url
-
-    kubectl create ns logging || true
-    kubectl apply -f $log_cluster
-
-    sleep 120  # Need a better way to determine readiness
-
-    kubectl apply -f $log_kibana
-
-    popd
-    pushd ../logging/fluentd
-
-    kubectl apply -f $fluentd_cm
-    
-    export elasticsearch_password=$(kubectl get secret eck-es-elastic-user -n logging -o go-template='{{.data.elastic | base64decode}}')
-
-    mv $fluentd_ds fluentd-ds.template
-    envsubst < fluentd-ds.template > $fluentd_ds
-
-    rm -f fluentd-ds.template
-
-    kubectl apply -f $fluentd_ds
-
-    popd
-}
-
-setup_kibana() {
-    local ki_ingress='kibana-ingress.yaml'
-    
-    echo "Deploying kibana ingress to $TF_VAR_eks_cluster_name..."
-
-    pwd
-    ls -l
-    pushd ../elasticsearch
-
-    mv $ki_ingress kibana-ingress.template
-    envsubst < kibana-ingress.template > $ki_ingress
-    rm -f kibana-ingress.template
-    
-    kubectl apply -f $ki_ingress
-
-    popd
-}
-
-setup_jaeger() {
-    echo "Deploying jaeger operator to $TF_VAR_eks_cluster_name..."
-
-    pushd ../elasticsearch
-    
-    kubectl create ns observability || true
-    kubectl apply -f $jaeger_url -n observability
-
-    sleep 120  # we need a better way to determine readiness
-
-    popd
 }
 
 show_pods() {
@@ -307,22 +219,16 @@ setup_all() {
     setup_prometheus
     setup_monitoring
     setup_eks_container
-    setup_elastic
-    setup_kibana
-    setup_jaeger
 }
 
 # --- main() ---
 
 task='all'
 
-while getopts "cejklmnpth" opt ; do
+while getopts "cemnpth" opt ; do
     case $opt in
         c) task=context ;;
         e) task=eks ;;
-        j) task=jaeger ;;
-        k) task=kibana ;;
-        l) task=elastic ;;
         m) task=monitor ;;
         n) task=nginx ;;
         p) task=prometheus ;;
@@ -346,9 +252,6 @@ case $task in
     prometheus) setup_prometheus ;;
     monitor) setup_monitoring ;;
     eks) setup_eks_container ;;
-    elastic) setup_elastic ;;
-    kibana) setup_kibana ;;
-    jaeger) setup_jaeger ;;
     *) usage ;;
 esac
 
