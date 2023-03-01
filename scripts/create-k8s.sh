@@ -16,7 +16,6 @@ set +o allexport
 
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
 
-readonly ingress_dir=$k8s_root/ingress
 readonly helm_url='https://charts.jetstack.io'
 readonly certman_version='v1.7.1'
 
@@ -112,7 +111,7 @@ setup_terraform() {
 setup_kube_context() {
     local issuer='prod-issuer.yaml'
     
-    pushd $ingress_dir
+    pushd ../ingress
 
     echo "Updating local kube context..."
     
@@ -150,7 +149,7 @@ setup_prometheus() {
     
     echo "Deploying kube-prometheus helm chart to $TF_VAR_eks_cluster_name..."
 
-    pushd monitoring
+    pushd ../monitoring
 
     mv $values_env values.template
     envsubst < values.template > $values_env
@@ -167,7 +166,7 @@ setup_prometheus() {
 setup_monitoring() {
     local mon_ingress='monitoring-ingress.yaml'
     
-    pushd ingress
+    pushd ../ingress
 
     echo "Deploying monitoring ingress to $TF_VAR_eks_cluster_name..."
 
@@ -214,7 +213,7 @@ setup_elastic() {
 
     echo "Deploying elasticsearch to $TF_VAR_eks_cluster_name..."
 
-    pushd logging/elasticsearch
+    pushd ../logging/elasticsearch
 
     kubectl apply -f $elastic_crds_url
     kubectl apply -f $elastic_op_url
@@ -227,7 +226,7 @@ setup_elastic() {
     kubectl apply -f $log_kibana
 
     popd
-    pushd logging/fluentd
+    pushd ../logging/fluentd
 
     kubectl apply -f $fluentd_cm
     
@@ -248,7 +247,7 @@ setup_kibana() {
     
     echo "Deploying kibana ingress to $TF_VAR_eks_cluster_name..."
 
-    pushd elasticsearch
+    pushd ../elasticsearch
 
     mv $ki_ingress kibana-ingress.template
     envsubst < kibana-ingress.template > $ki_ingress
@@ -262,7 +261,7 @@ setup_kibana() {
 setup_jaeger() {
     echo "Deploying jaeger operator to $TF_VAR_eks_cluster_name..."
 
-    pushd elasticsearch
+    pushd ../elasticsearch
     
     kubectl create ns observability || true
     kubectl apply -f $jaeger_url -n observability
