@@ -116,7 +116,7 @@ setup_kube_context() {
 
     echo "Updating local kube context..."
     
-    aws eks update-kubeconfig --name $TF_VAR_eks_cluster_name
+    aws eks update-kubeconfig --name $TF_VAR_eks_cluster_name --region $TF_VAR_aws_region
     
     echo "Deploying cert-manager helm chart to $TF_VAR_eks_cluster_name..."
 
