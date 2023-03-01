@@ -255,6 +255,8 @@ setup_kibana() {
     
     echo "Deploying kibana ingress to $TF_VAR_eks_cluster_name..."
 
+    pwd
+    ls -l
     pushd ../elasticsearch
 
     mv $ki_ingress kibana-ingress.template
