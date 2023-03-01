@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
 
 # This script may be used to initialize and deploy our EKS Kubernetes cluster. At some point, however, we
 # should replace this thing with an Ansible playbook.
@@ -151,7 +151,7 @@ setup_prometheus() {
     helm repo add prometheus-community $prometheus_helm_url
     helm repo update
 
-    helm delete kube-prometheus --namespace monitoring || echo "$progname: kube-prometheus not loaded: ignoring.."
+    helm delete kube-prometheus --namespace monitoring || echo "$progname: kube-prometheus not loaded: ignoring..."
     helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values $values_env --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
 
     popd
@@ -185,7 +185,11 @@ setup_eks_container() {
     [[ $FluentBitReadFromHead = 'On' ]] && FluentBitReadFromTail='Off'|| FluentBitReadFromTail='On'
     [[ -z $FluentBitHttpPort ]] && FluentBitHttpServer='Off' || FluentBitHttpServer='On'
 
-    curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
+    local doc=$(curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/')
+
+    echo "$doc" | kubectl apply -f -
+
+    # curl $cloudwatch_url | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
 }
 
 sanity_checks() {
