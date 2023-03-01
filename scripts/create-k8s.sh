@@ -40,7 +40,7 @@ This script may be used to initialize and deploy our EKS Kubernetes cluster. By 
 are run. This may be controlled via the use of command-line arguments.
 
 The following environment variables are expected to be defined for this script to function properly:
-  - TF_VAR_eks_cluster
+  - TF_VAR_eks_cluster_name
   - TF_VAR_aws_region
   - k8s_provider
 
@@ -278,7 +278,7 @@ show_pods() {
 
 sanity_checks() {
     [[ -n $k8s_provider ]] || fail -v "k8s_provider is unbound!"
-    [[ -n $TF_VAR_eks_cluster ]] || fail -v "TF_VAR_eks_cluster is unbound!"
+    [[ -n $TF_VAR_eks_cluster_name ]] || fail -v "TF_VAR_eks_cluster_name is unbound!"
     [[ -n $TF_VAR_aws_region ]] || fail -v "TF_VAR_aws_region is unbound!"
 
     [[ $k8s_provider == eks ]] || fail -v "only 'eks' is supported for k8s_provider ($k8s_provider)!"
