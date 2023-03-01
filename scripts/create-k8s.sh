@@ -116,16 +116,16 @@ setup_kube_context() {
 
     echo "Updating local kube context..."
     
-    aws eks update-kubeconfig --name ${TF_VAR_eks_cluster_name}
+    aws eks update-kubeconfig --name $TF_VAR_eks_cluster_name
     
-    echo "Deploying cert-manager helm chart to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying cert-manager helm chart to $TF_VAR_eks_cluster_name..."
 
     helm repo add jetstack $helm_url
     helm repo update
 
     helm upgrade cert-manager jetstack/cert-manager --set installCRDs=true --namespace cert-manager --version $certman_version --install --create-namespace --wait --timeout 8000s --debug 
 
-    echo "Deploying production cluster issuer to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying production cluster issuer to $TF_VAR_eks_cluster_name..."
 
     mv $issuer prod-issuer.template
     
@@ -138,16 +138,17 @@ setup_kube_context() {
 }
 
 setup_nginx() {
-    echo "Deploying nginx ingress controller to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying nginx ingress controller to $TF_VAR_eks_cluster_name..."
     
     kubectl apply -f $nginx_url
+
     sleep 180  # We need a better way to determine readiness
 }
 
 setup_prometheus() {
     local values_env='values.yaml'
     
-    echo "Deploying kube-prometheus helm chart to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying kube-prometheus helm chart to $TF_VAR_eks_cluster_name..."
 
     pushd monitoring
 
@@ -168,7 +169,7 @@ setup_monitoring() {
     
     pushd ingress
 
-    echo "Deploying monitoring ingress to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying monitoring ingress to $TF_VAR_eks_cluster_name..."
 
     mv $mon_ingress monitoring-ingress.template
     envsubst < monitoring-ingress.template > $mon_ingress
@@ -181,10 +182,10 @@ setup_monitoring() {
 }
 
 setup_eks_container() {
-    echo "Deploying AWS EKS Container Insights to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying AWS EKS Container Insights to $TF_VAR_eks_cluster_name..."
     
-    export ClusterName=${TF_VAR_eks_cluster_name}
-    export RegionName=${TF_VAR_aws_region}
+    export ClusterName=$TF_VAR_eks_cluster_name
+    export RegionName=$TF_VAR_aws_region
     export FluentBitHttpPort='2020'
     export FluentBitReadFromHead='Off'
 
@@ -211,7 +212,7 @@ setup_elastic() {
     local fluentd_cm='fluentd-cm.yaml'
     local fluentd_ds='fluentd_ds.yaml'
 
-    echo "Deploying elasticsearch to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying elasticsearch to $TF_VAR_eks_cluster_name..."
 
     pushd logging/elasticsearch
 
@@ -245,7 +246,7 @@ setup_elastic() {
 setup_kibana() {
     local ki_ingress='kibana-ingress.yaml'
     
-    echo "Deploying kibana ingress to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying kibana ingress to $TF_VAR_eks_cluster_name..."
 
     pushd elasticsearch
 
@@ -259,7 +260,7 @@ setup_kibana() {
 }
 
 setup_jaeger() {
-    echo "Deploying jaeger operator to ${TF_VAR_eks_cluster_name}..."
+    echo "Deploying jaeger operator to $TF_VAR_eks_cluster_name..."
 
     pushd elasticsearch
     
