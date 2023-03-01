@@ -193,7 +193,7 @@ setup_eks_container() {
 
     curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluent-bit-quickstart.yaml | sed 's/{{cluster_name}}/'${ClusterName}'/;s/{{region_name}}/'${RegionName}'/;s/{{http_server_toggle}}/"'${FluentBitHttpServer}'"/;s/{{http_server_port}}/"'${FluentBitHttpPort}'"/;s/{{read_from_head}}/"'${FluentBitReadFromHead}'"/;s/{{read_from_tail}}/"'${FluentBitReadFromTail}'"/' | kubectl apply -f -
 
-    # local cw_data=$(curl --silent $cloudwatch_url)
+    # local cw_data=$(curl $cloudwatch_url)
 
     # [[ -n $cw_data ]] || fail "nothing retrieved from $cloudwatch_url"
 
@@ -215,7 +215,7 @@ setup_elastic() {
     local log_cluster='logging-cluster.yaml'
     local log_kibana='logging-kibana.yaml'
     local fluentd_cm='fluentd-cm.yaml'
-    local fluentd_ds='fluentd_ds.yaml'
+    local fluentd_ds='fluentd-ds.yaml'
 
     echo "Deploying elasticsearch to $TF_VAR_eks_cluster_name..."
 
