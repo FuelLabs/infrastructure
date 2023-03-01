@@ -42,9 +42,7 @@ are run. This may be controlled via the use of command-line arguments.
 The following environment variables are expected to be defined for this script to function properly:
   - TF_VAR_eks_cluster
   - TF_VAR_aws_region
-  - FluentBitReadFromHead
-  - FluentBitHttpPort
-  - k8s_provider (optional; defaults to 'eks')
+  - k8s_provider
 
 Options:
   -c   Set up the kube context only.
@@ -279,11 +277,11 @@ show_pods() {
 }
 
 sanity_checks() {
-    # assuming these directories exist, we're likely ok.
-    
-    for dir in ingress logging monitoring scripts terraform ; do
-        [[ -d $dir ]] || fail -v "$dir is missing from $k8s_root!"
-    done
+    [[ -n $k8s_provider ]] || fail -v "k8s_provider is unbound!"
+    [[ -n $TF_VAR_eks_cluster ]] || fail -v "TF_VAR_eks_cluster is unbound!"
+    [[ -n $TF_VAR_aws_region ]] || fail -v "TF_VAR_aws_region is unbound!"
+
+    [[ $k8s_provider == eks ]] || fail -v "only 'eks' is supported for k8s_provider ($k8s_provider)!"
 }
 
 error_handler() {
@@ -328,6 +326,8 @@ done
 shift $((OPTIND - 1))
 
 trap 'error_handler $? $LINENO' ERR
+
+sanity_checks
 
 case $task in
     all) setup_all ;;
