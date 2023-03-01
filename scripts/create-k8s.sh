@@ -159,7 +159,7 @@ setup_prometheus() {
     helm repo add prometheus-community $prometheus_helm_url
     helm repo update
 
-    helm delete kube-prometheus --namespace monitoring
+    helm delete kube-prometheus --namespace monitoring || echo "$progname: kube-prometheus not loaded: ignoring.."
     helm upgrade kube-prometheus prometheus-community/kube-prometheus-stack --values $values_env --install --create-namespace --namespace=monitoring --wait --timeout 8000s --debug --version ^34
 
     popd
