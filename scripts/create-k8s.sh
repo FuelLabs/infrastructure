@@ -134,6 +134,8 @@ setup_nginx() {
     kubectl apply -f $nginx_url
 
     sleep 180  # We need a better way to determine readiness
+    
+    kubectl patch svc ingress-nginx-controller --type='json' -p='[{"op": "add", "path": "/metadata/annotations/service.beta.kubernetes.io~1aws-load-balancer-proxy-protocol", "value":"*"}]' -n ingress-nginx
 }
 
 setup_prometheus() {
