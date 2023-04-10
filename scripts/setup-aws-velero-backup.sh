@@ -80,7 +80,7 @@ read list $*
 
 echo "Creating Velero Backup Schedules ...."
 for i in ${list[@]}; do
-    velero schedule create $i-backups --include-namespaces $i --schedule="0 */4 * * *"
+    velero schedule create $i-backups --ttl 168h0m0s --include-namespaces $i --schedule="0 */4 * * *" --include-resources pvc,pv,pod,service,statefulset,deployment,replicaset,configmap,secret
 done
 
 echo "Viewing Velero Backup Schedules ...."
