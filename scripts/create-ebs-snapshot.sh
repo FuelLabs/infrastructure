@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Please authenticate to your cluster first ...."
+echo "Please authenticate to your cluster first with your AWS credentials ...."
 
 echo "Please enter your k8s namespace ...."
 read NAMESPACE
@@ -24,5 +24,5 @@ read FINAL_SNAPSHOT_ID
 
 echo "Wait until you Progress is 100% before deploying fuel-core ...."
 aws ec2 describe-snapshots --snapshot-ids $FINAL_SNAPSHOT_ID
-echo "Make sure to use $FINAL_SNAPSHOT_ID for fuel_core_pvc_snapshot_ref in fuel-deployment env file"
+echo "Make sure to utilizze $FINAL_SNAPSHOT_ID for fuel_core_pvc_snapshot_ref in fuel-deployment env file"
 
