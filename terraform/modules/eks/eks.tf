@@ -73,12 +73,31 @@ resource "aws_eks_node_group" "nodes" {
     max_unavailable = 1
   }
 
+
+  launch_template {
+    id      = aws_launch_template.node.id
+    version = aws_launch_template.node.latest_version
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
 }
+
+
+resource "aws_launch_template" "node" {
+  name_prefix = "node"
+  description = "EKS Worker Launch Template"
+
+  user_data = base64encode(<<-EOT
+    #!/bin/bash
+    /etc/eks/bootstrap.sh ${module.eks.cluster_id} --kubelet-extra-args '--cpu-manager-policy=static --kube-reserved-cpu=1'
+  EOT
+  )
+}
+
 
 # EKS Cluster IAM Role
 resource "aws_iam_role" "eks-cluster-iam-role" {
