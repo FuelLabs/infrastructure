@@ -44,6 +44,7 @@ Options:
   -n   Set up nginx only.
   -p   Set up Prometheus only.
   -t   Set up Terraform only.
+  -py  Set up pyro only
   -h   Show this message and exit.
 
 Notes:
@@ -223,6 +224,7 @@ setup_all() {
     setup_prometheus
     setup_monitoring
     setup_eks_container
+    setup_pyro
 }
 
 # --- main() ---
