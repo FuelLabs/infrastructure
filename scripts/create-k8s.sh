@@ -44,6 +44,7 @@ Options:
   -n   Set up nginx only.
   -p   Set up Prometheus only.
   -t   Set up Terraform only.
+  -py  Set up pyro only
   -h   Show this message and exit.
 
 Notes:
@@ -192,6 +193,15 @@ setup_eks_container() {
     return 0
 }
 
+setup_pyro() {
+    echo "Deploying pyro to $TF_VAR_eks_cluster_name..."
+    
+    helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
+    helm install pyroscope pyroscope-io/pyroscope --namespace monitoring
+    kubectl get pods -n monitoring | grep pyro
+ 
+}
+
 sanity_checks() {
     [[ -n $k8s_provider ]] || fail -v "k8s_provider is unbound!"
     [[ -n $TF_VAR_eks_cluster_name ]] || fail -v "TF_VAR_eks_cluster_name is unbound!"
@@ -214,6 +224,7 @@ setup_all() {
     setup_prometheus
     setup_monitoring
     setup_eks_container
+    setup_pyro
 }
 
 # --- main() ---
@@ -228,6 +239,7 @@ while getopts "cemnpth" opt ; do
         n) task=nginx ;;
         p) task=prometheus ;;
         t) task=terraform ;;
+        py) task=pyro ;;
         h) usage ;;
         *) usage ;;
     esac
@@ -247,6 +259,7 @@ case $task in
     prometheus) setup_prometheus ;;
     monitor) setup_monitoring ;;
     eks) setup_eks_container ;;
+    pyro) setup_pyro ;;
     *) usage ;;
 esac
 
