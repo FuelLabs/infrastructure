@@ -29,7 +29,7 @@ module "eks" {
 resource "aws_eks_addon" "core_dns" {
   cluster_name = module.eks.cluster_id
   addon_name        = "coredns"
-  addon_version     = "v1.9.3-eksbuild.2"
+  addon_version     = v1.10.1-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -40,7 +40,7 @@ resource "aws_eks_addon" "core_dns" {
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name = module.eks.cluster_id
   addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.17.0-eksbuild.1"
+  addon_version     = "v1.19.0-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
