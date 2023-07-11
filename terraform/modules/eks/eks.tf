@@ -6,7 +6,7 @@ module "eks" {
   cluster_name                    = "${var.eks_cluster_name}"
   cluster_version                 = "${var.eks_cluster_version}"
   cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access  = false
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -216,11 +216,11 @@ resource "aws_security_group" "eks-cluster-sg" {
   vpc_id        = module.vpc.vpc_id
 
   ingress {
-    description = "Allow Public Traffic"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks =  ["0.0.0.0/0"]
+    description = "Allow VPC Traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   ingress {
