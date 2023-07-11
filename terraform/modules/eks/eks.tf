@@ -49,7 +49,7 @@ resource "aws_eks_addon" "ebs_csi_driver" {
 
 # EKS Node Group
 resource "aws_eks_node_group" "nodes" {
-  cluster_name    = module.eks.cluster_id
+  cluster_name    = "${var.eks_cluster_name}"
   node_group_name = var.eks_node_groupname
   node_role_arn   = aws_iam_role.eks-nodegroup-iam-role.arn
   subnet_ids      = module.vpc.private_subnets
