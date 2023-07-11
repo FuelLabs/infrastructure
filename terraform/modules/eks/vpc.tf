@@ -28,6 +28,6 @@ module "vpc" {
   private_subnet_tags = local.private_subnet_eks_tag
 
   enable_nat_gateway = true
-  single_nat_gateway = true
+  single_nat_gateway = false
   tags               = merge(local.environment_tag, local.vpc_eks_tag)
 }

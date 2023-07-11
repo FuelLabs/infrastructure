@@ -8,39 +8,52 @@ module "eks" {
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
-  cluster_addons = {
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-  }
-
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = concat(module.vpc.public_subnets, module.vpc.private_subnets)
+  subnet_ids = module.vpc.private_subnets
   create_iam_role = false
   iam_role_arn = aws_iam_role.eks-cluster-iam-role.arn
   create_cluster_security_group= false
   cluster_security_group_id = aws_security_group.eks-cluster-sg.id
 }
 
-# EKS Cluster CoreDNS Cluster Add On 
+# EKS Cluster CoreDNS Add On 
 resource "aws_eks_addon" "core_dns" {
   cluster_name = "${var.eks_cluster_name}"
   addon_name        = "coredns"
-  addon_version     = "v1.9.3-eksbuild.5"
+  addon_version     = "v1.10.1-eksbuild.2"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
   ]
 }
 
-# EKS Cluster EBS CSI Driver Cluster Add On 
+# EKS Cluster EBS CSI Driver Add On 
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name = "${var.eks_cluster_name}"
   addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.19.0-eksbuild.1"
+  addon_version     = "v1.20.0-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.nodes,
+  ]
+}
+
+# EKS Cluster VPC CNI Cluster Add On
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = "${var.eks_cluster_name}"
+  addon_name   = "vpc-cni"
+  addon_version     = "v1.13.2-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.nodes,
+  ]
+}
+
+# EKS Cluster Kube-Proxy Add On
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = "${var.eks_cluster_name}"
+  addon_name   = "kube-proxy"
+  addon_version     = "v1.27.3-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
