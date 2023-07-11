@@ -27,7 +27,11 @@ module "vpc" {
   private_subnets     = var.aws_private_subnets
   private_subnet_tags = local.private_subnet_eks_tag
 
-  enable_nat_gateway = true
-  single_nat_gateway = false
+  enable_nat_gateway     = true
+  single_nat_gateway     = false
+  one_nat_gateway_per_az = true
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
+
   tags               = merge(local.environment_tag, local.vpc_eks_tag)
 }
