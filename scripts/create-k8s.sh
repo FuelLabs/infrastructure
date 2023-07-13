@@ -10,8 +10,8 @@ set +o allexport
 
 readonly k8s_root=$(pwd)/..  # we're assuming that this script is run from its home directory (scripts)
 
-local tstate=state.tf
-local tform_env=$k8s_root/terraform/environments/$k8s_provider
+export tstate=state.tf
+export tform_env=$k8s_root/terraform/environments/$k8s_provider
     
 pushd $tform_env
 
