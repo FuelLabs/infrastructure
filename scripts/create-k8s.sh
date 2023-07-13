@@ -94,7 +94,7 @@ setup_terraform() {
 
     echo "Creating or updating K8s cluster now. Please don't interrupt your terminal!"
 
-    terraform apply -auto-approve
+    terraform plan
 
     echo "Please wait while your K8s cluster is configured."
 
