@@ -16,7 +16,7 @@ locals {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.11.0"
+  version = "5.0.0"
 
   name = var.aws_environment
   cidr = var.aws_vpc_cidr_block
@@ -27,7 +27,11 @@ module "vpc" {
   private_subnets     = var.aws_private_subnets
   private_subnet_tags = local.private_subnet_eks_tag
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
+
   tags               = merge(local.environment_tag, local.vpc_eks_tag)
 }

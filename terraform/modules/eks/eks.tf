@@ -1,46 +1,59 @@
 # EKS Cluster
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
-  version = "18.29.0"
+  version = "19.15.3"
 
   cluster_name                    = "${var.eks_cluster_name}"
   cluster_version                 = "${var.eks_cluster_version}"
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
-  cluster_addons = {
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-  }
-
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = concat(module.vpc.public_subnets, module.vpc.private_subnets)
+  subnet_ids = module.vpc.private_subnets
   create_iam_role = false
   iam_role_arn = aws_iam_role.eks-cluster-iam-role.arn
   create_cluster_security_group= false
   cluster_security_group_id = aws_security_group.eks-cluster-sg.id
 }
 
-# EKS Cluster CoreDNS Cluster Add On 
+# EKS Cluster CoreDNS Add On 
 resource "aws_eks_addon" "core_dns" {
-  cluster_name = module.eks.cluster_id
+  cluster_name = "${var.eks_cluster_name}"
   addon_name        = "coredns"
-  addon_version     = "v1.10.1-eksbuild.1"
+  addon_version     = "v1.10.1-eksbuild.2"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
   ]
 }
 
-# EKS Cluster EBS CSI Driver Cluster Add On 
+# EKS Cluster EBS CSI Driver Add On 
 resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name = module.eks.cluster_id
+  cluster_name = "${var.eks_cluster_name}"
   addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.19.0-eksbuild.1"
+  addon_version     = "v1.20.0-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.nodes,
+  ]
+}
+
+# EKS Cluster VPC CNI Cluster Add On
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = "${var.eks_cluster_name}"
+  addon_name   = "vpc-cni"
+  addon_version     = "v1.13.2-eksbuild.1"
+  resolve_conflicts = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.nodes,
+  ]
+}
+
+# EKS Cluster Kube-Proxy Add On
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = "${var.eks_cluster_name}"
+  addon_name   = "kube-proxy"
+  addon_version     = "v1.27.3-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -49,7 +62,7 @@ resource "aws_eks_addon" "ebs_csi_driver" {
 
 # EKS Node Group
 resource "aws_eks_node_group" "nodes" {
-  cluster_name    = module.eks.cluster_id
+  cluster_name    = "${var.eks_cluster_name}"
   node_group_name = var.eks_node_groupname
   node_role_arn   = aws_iam_role.eks-nodegroup-iam-role.arn
   subnet_ids      = module.vpc.private_subnets
@@ -64,11 +77,6 @@ resource "aws_eks_node_group" "nodes" {
     min_size     = var.eks_node_min_size
   }
 
-  remote_access {
-    ec2_ssh_key = var.ec2_ssh_key 
-    source_security_group_ids = [aws_security_group.eks-node-sg.id]
-  }
-
   update_config {
     max_unavailable = 1
   }
@@ -77,6 +85,8 @@ resource "aws_eks_node_group" "nodes" {
     aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
+    module.eks
+
   ]
 }
 
@@ -206,11 +216,11 @@ resource "aws_security_group" "eks-cluster-sg" {
   vpc_id        = module.vpc.vpc_id
 
   ingress {
-    description = "Allow Public Traffic"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks =  ["0.0.0.0/0"]
+    description = "Allow VPC Traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["${var.aws_vpc_cidr_block}"]
   }
 
   ingress {
