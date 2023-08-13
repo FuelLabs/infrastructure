@@ -830,6 +830,11 @@ grafana:
 
   adminPassword: prom-operator
 
+  image:
+    repository: docker.io/grafana/grafana
+    tag: latest
+    pullPolicy: Always
+
   rbac:
     ## If true, Grafana PSPs will be created
     ##
@@ -843,6 +848,22 @@ grafana:
     size: 10Gi
     finalizers:
       - kubernetes.io/pvc-protection
+      
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://kube-prometheus-kube-prome-prometheus.monitoring:9090
+        access: proxy
+        isDefault: true
+      - name: Grafana Pyroscope
+        type: phlare
+        url: http://pyroscope:4040
+        jsonData:
+          minStep: '15s'
+          backendType: 'pyroscope'
 
   ingress:
     ## If true, Grafana Ingress will be created
