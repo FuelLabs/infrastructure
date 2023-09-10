@@ -1,0 +1,157 @@
+apiVersion: v1
+data:
+  application-log.conf: "[INPUT]\n    Name                tail\n    Tag                 application.*\n
+    \   Exclude_Path        /var/log/containers/cluster-autoscaler*, /var/log/containers/kube-prometheus*,
+    /var/log/containers/snapshot-controller*, /var/log/containers/ebs*, /var/log/containers/prometheus*,
+    /var/log/containers/cert*, /var/log/containers/kube*, /var/log/containers/cloudwatch-agent*,
+    /var/log/containers/fluent-bit*, /var/log/containers/aws*, /var/log/containers/kube-proxy*,
+    /var/log/containers/coredns*, /var/log/containers/dev*, /var/log/containers/metrics*,
+    /var/log/containers/alert*, /kube/log/containers/oauth*  \n    Path                /var/log/containers/*.log\n
+    \   Docker_Mode         On\n    Docker_Mode_Flush   5\n    Docker_Mode_Parser
+    \ container_firstline\n    Parser              docker\n    DB                  /var/fluent-bit/state/flb_container.db\n
+    \   Mem_Buf_Limit       50MB\n    Skip_Long_Lines     On\n    Refresh_Interval
+    \   10\n    Rotate_Wait         30\n    storage.type        filesystem\n    Read_from_Head
+    \     ${READ_FROM_HEAD}\n\n[FILTER]\n    Name                kubernetes\n    Match
+    \              application.*\n    Kube_URL            https://kubernetes.default.svc:443\n
+    \   Kube_Tag_Prefix     application.var.log.containers.\n    Merge_Log           On\n
+    \   Merge_Log_Key       log_processed\n    K8S-Logging.Parser  On\n    K8S-Logging.Exclude
+    Off\n    Labels              Off\n    Annotations         Off\n    Use_Kubelet
+    \        On\n    Kubelet_Port        10250\n    Buffer_Size         0\n\n[OUTPUT]\n
+    \   Name                cloudwatch_logs\n    Match               application.*\n
+    \   region              ${AWS_REGION}\n    log_group_name      /aws/containerinsights/${CLUSTER_NAME}/application\n
+    \   log_stream_prefix   ${HOST_NAME}-\n    auto_create_group   true\n    extra_user_agent
+    \   container-insights\n"
+  dataplane-log.conf: |
+    [INPUT]
+        Name                systemd
+        Tag                 dataplane.systemd.*
+        Systemd_Filter      _SYSTEMD_UNIT=docker.service
+        Systemd_Filter      _SYSTEMD_UNIT=kubelet.service
+        DB                  /var/fluent-bit/state/systemd.db
+        Path                /var/log/journal
+        Read_From_Tail      ${READ_FROM_TAIL}
+
+    [INPUT]
+        Name                tail
+        Tag                 dataplane.tail.*
+        Path                /var/log/containers/aws-node*, /var/log/containers/kube-proxy*
+        Docker_Mode         On
+        Docker_Mode_Flush   5
+        Docker_Mode_Parser  container_firstline
+        Parser              docker
+        DB                  /var/fluent-bit/state/flb_dataplane_tail.db
+        Mem_Buf_Limit       50MB
+        Skip_Long_Lines     On
+        Refresh_Interval    10
+        Rotate_Wait         30
+        storage.type        filesystem
+        Read_from_Head      ${READ_FROM_HEAD}
+
+    [FILTER]
+        Name                modify
+        Match               dataplane.systemd.*
+        Rename              _HOSTNAME                   hostname
+        Rename              _SYSTEMD_UNIT               systemd_unit
+        Rename              MESSAGE                     message
+        Remove_regex        ^((?!hostname|systemd_unit|message).)*$
+
+    [FILTER]
+        Name                aws
+        Match               dataplane.*
+        imds_version        v1
+
+    [OUTPUT]
+        Name                cloudwatch_logs
+        Match               dataplane.*
+        region              ${AWS_REGION}
+        log_group_name      /aws/containerinsights/${CLUSTER_NAME}/dataplane
+        log_stream_prefix   ${HOST_NAME}-
+        auto_create_group   true
+        extra_user_agent    container-insights
+  fluent-bit.conf: "[SERVICE]\n    Flush                     5\n    Log_Level                 info\n
+    \   Daemon                    off\n    Parsers_File              parsers.conf\n
+    \   HTTP_Server               ${HTTP_SERVER}\n    HTTP_Listen               0.0.0.0\n
+    \   HTTP_Port                 ${HTTP_PORT}\n    storage.path              /var/fluent-bit/state/flb-storage/\n
+    \   storage.sync              normal\n    storage.checksum          off\n    storage.backlog.mem_limit
+    5M\n    \n@INCLUDE application-log.conf\n@INCLUDE dataplane-log.conf\n@INCLUDE
+    host-log.conf\n"
+  host-log.conf: |
+    [INPUT]
+        Name                tail
+        Tag                 host.dmesg
+        Path                /var/log/dmesg
+        Parser              syslog
+        DB                  /var/fluent-bit/state/flb_dmesg.db
+        Mem_Buf_Limit       5MB
+        Skip_Long_Lines     On
+        Refresh_Interval    10
+        Read_from_Head      ${READ_FROM_HEAD}
+
+    [INPUT]
+        Name                tail
+        Tag                 host.messages
+        Path                /var/log/messages
+        Parser              syslog
+        DB                  /var/fluent-bit/state/flb_messages.db
+        Mem_Buf_Limit       5MB
+        Skip_Long_Lines     On
+        Refresh_Interval    10
+        Read_from_Head      ${READ_FROM_HEAD}
+
+    [INPUT]
+        Name                tail
+        Tag                 host.secure
+        Path                /var/log/secure
+        Parser              syslog
+        DB                  /var/fluent-bit/state/flb_secure.db
+        Mem_Buf_Limit       5MB
+        Skip_Long_Lines     On
+        Refresh_Interval    10
+        Read_from_Head      ${READ_FROM_HEAD}
+
+    [FILTER]
+        Name                aws
+        Match               host.*
+        imds_version        v1
+
+    [OUTPUT]
+        Name                cloudwatch_logs
+        Match               host.*
+        region              ${AWS_REGION}
+        log_group_name      /aws/containerinsights/${CLUSTER_NAME}/host
+        log_stream_prefix   ${HOST_NAME}.
+        auto_create_group   true
+        extra_user_agent    container-insights
+  parsers.conf: |
+    [PARSER]
+        Name                docker
+        Format              json
+        Time_Key            time
+        Time_Format         %Y-%m-%dT%H:%M:%S.%LZ
+
+    [PARSER]
+        Name                syslog
+        Format              regex
+        Regex               ^(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key            time
+        Time_Format         %b %d %H:%M:%S
+
+    [PARSER]
+        Name                container_firstline
+        Format              regex
+        Regex               (?<log>(?<="log":")\S(?!\.).*?)(?<!\\)".*(?<stream>(?<="stream":").*?)".*(?<time>\d{4}-\d{1,2}-\d{1,2}T\d{2}:\d{2}:\d{2}\.\w*).*(?=})
+        Time_Key            time
+        Time_Format         %Y-%m-%dT%H:%M:%S.%LZ
+
+    [PARSER]
+        Name                cwagent_firstline
+        Format              regex
+        Regex               (?<log>(?<="log":")\d{4}[\/-]\d{1,2}[\/-]\d{1,2}[ T]\d{2}:\d{2}:\d{2}(?!\.).*?)(?<!\\)".*(?<stream>(?<="stream":").*?)".*(?<time>\d{4}-\d{1,2}-\d{1,2}T\d{2}:\d{2}:\d{2}\.\w*).*(?=})
+        Time_Key            time
+        Time_Format         %Y-%m-%dT%H:%M:%S.%LZ
+kind: ConfigMap
+metadata:
+  labels:
+    k8s-app: fluent-bit
+  name: fluent-bit-config
+  namespace: amazon-cloudwatch
