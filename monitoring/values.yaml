@@ -155,13 +155,29 @@ additionalPrometheusRulesMap:
           annotations:
             identifier: "{{ $labels.namespace }}/{{ $labels.persistenvolumeclaim }}"
             description: "Persistent volume predicted to run out of space in under 4 hours"
-        - alert: Kubernetes Pod has above 5 restarts
+        - alert: Pod Container Restart Count 
           annotations:
-            message: Kubernetes Pod has above 5 restarts
-          expr: kube_pod_container_status_restarts_total > 5
+            message:  Increase of Pod Container Restart Count in the last 1h
+          expr: increase(kube_pod_container_status_restarts_total[1h]) > 0
           for: 10m
           labels:
             severity: warning
+        - alert: Pod Memory Above 85 %
+          annotations:
+            message: Pod Memory Above 85 %
+          expr: |
+            100 * max(container_memory_working_set_bytes / on (container, pod) kube_pod_container_resource_limits{resource="memory"}) by (pod) > 85
+          for: 15m
+          labels:
+            severity: critical
+        - alert: Pod CPU Above 85 %
+          annotations:
+            message: Pod CPU Above 85 %
+          expr: |
+            100 * max(rate(container_cpu_usage_seconds_total[5m]) / on (container, pod) kube_pod_container_resource_limits{resource="cpu"}) by (pod) > 85
+          for: 15m
+          labels:
+            severity: critical
         - alert: Kubernetes Pod Terminated Due to Errors
           annotations:
             message: Kubernetes Pod Terminated Due to Errors
