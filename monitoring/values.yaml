@@ -159,7 +159,7 @@ additionalPrometheusRulesMap:
           annotations:
             message:  Increase of Pod Container Restart Count in the last 1h
           expr: increase(kube_pod_container_status_restarts_total[1h]) > 0
-          for: 10m
+          for: 15m
           labels:
             severity: warning
         - alert: Pod Memory above 95%
