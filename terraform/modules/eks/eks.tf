@@ -31,7 +31,7 @@ resource "aws_eks_addon" "core_dns" {
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name = "${var.eks_cluster_name}"
   addon_name        = "aws-ebs-csi-driver"
-  addon_version     = "v1.23.1-eksbuild.1"
+  addon_version     = "v1.24.0-eksbuild.1"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
@@ -53,7 +53,7 @@ resource "aws_eks_addon" "vpc_cni" {
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name = "${var.eks_cluster_name}"
   addon_name   = "kube-proxy"
-  addon_version     = "v1.28.2-eksbuild.2"
+  addon_version     = "v1.27.6-eksbuild.2"
   resolve_conflicts = "OVERWRITE"
   depends_on = [
     aws_eks_node_group.nodes,
