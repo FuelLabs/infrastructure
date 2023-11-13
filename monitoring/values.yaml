@@ -99,46 +99,30 @@ additionalPrometheusRulesMap:
     groups:
     - name: Alerts
       rules:
-        - alert: NodeMemoryWarn
-          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 20
-          for: 5m
-          labels:
-            severity: warning
-          annotations:
-            identifier: "{{ $labels.kubernetes_node }}"
-            summary: "Low memory on node ({{ $value }}% available)"    
         - alert: NodeMemoryCritical
-          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 20
           for: 5m
           labels:
             severity: critical
           annotations:
             identifier: "{{ $labels.kubernetes_node }}"
-            summary: "Low memory on node ({{ $value }}% available)"
+            summary: "Low memory on node ({{ $value }}% available) less than 20%"    
         - alert: NodeDiskWarn
           expr: predict_linear(node_filesystem_free_bytes[1h], 4 * 3600) < 0
-          for: 5m
-          labels:
-            severity: warn
-          annotations:
-            identifier: "{{ $labels.kubernetes_node }}"
-            summary: "Disk predicted to fill in under 4 hours"
-        - alert: NodeInodesWarn
-          expr: predict_linear(node_filesystem_files_free{mountpoint ="/"}[1h], 4 * 3600) < 0
-          for: 5m
-          labels:
-            severity: warn
-          annotations:
-            identifier: "{{ $labels.kubernetes_node }}"
-            summary: "Disk predicted to run out of inodes in under 4 hours"
-        - alert: NodeCpuLoadWarn
-          expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
           for: 5m
           labels:
             severity: warning
           annotations:
             identifier: "{{ $labels.kubernetes_node }}"
-            summary: "High CPU usage on node ({{ $value }}%)"
+            summary: "Disk predicted to fill in under 4 hours on {{ $labels.kubernetes_node }} node"
+        - alert: NodeInodesWarn
+          expr: predict_linear(node_filesystem_files_free{mountpoint ="/"}[1h], 4 * 3600) < 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            identifier: "{{ $labels.kubernetes_node }}"
+            summary: "Disk predicted to run out of inodes in under 4 hours on {{ $labels.kubernetes_node }} node"
         - alert: NodeCpuLoadCritical
           expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
           for: 5m
@@ -146,7 +130,7 @@ additionalPrometheusRulesMap:
             severity: warning
           annotations:
             identifier: "{{ $labels.kubernetes_node }}"
-            summary: "High CPU usage on node ({{ $value }}%)"
+            summary: "High CPU usage on node ({{ $value }}%) above 90%"
         - alert: PersistentVolumeDiskWarning
           expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 4 * 3600) < 0
           for: 5m
@@ -154,84 +138,84 @@ additionalPrometheusRulesMap:
             severity: warning
           annotations:
             identifier: "{{ $labels.namespace }}/{{ $labels.persistenvolumeclaim }}"
-            summary: "Persistent volume predicted to run out of space in under 4 hours"
+            summary: "Persistent volume {{ $labels.persistenvolumeclaim }} in {{ $labels.namespace }} predicted to run out of space in under 4 hours"
         - alert: Pod Container Restart Count 
           annotations:
-            message:  Increase of Pod Container Restart Count in the last 1h
+            summary:  Increase of Pod {{ $labels.pod }} Container Restart Count in {{ $labels.namespace }} namespace in the last 1 hour
           expr: increase(kube_pod_container_status_restarts_total[1h]) > 0
           for: 15m
           labels:
             severity: warning
-        - alert: Pod Memory above 95%
+        - alert: Pod Memory above 90%
           annotations:
-            summary: Pod {{ $labels.pod }} in {{ $labels.namespace }} is Memory is above 95%
+            summary: Pod {{ $labels.pod }} in {{ $labels.namespace }} namespace is Memory is above 90%
           expr: |
-            100 * max by(pod,namespace) (container_memory_working_set_bytes / on(container, pod, namespace) label_replace(kube_pod_container_resource_limits{resource="memory"}, "pod", "$1", "exported_pod", "(.+)")) > 95
-          for: 15m
+            100 * max by(pod,namespace) (container_memory_working_set_bytes / on(container, pod, namespace) label_replace(kube_pod_container_resource_limits{resource="memory"}, "pod", "$1", "exported_pod", "(.+)")) > 90
+          for: 5m
           labels:
-            severity: critical
-        - alert: Pod CPU Above 95 %
+            severity: warning
+        - alert: Pod CPU Above 90 %
           annotations:
-            summary: Pod {{ $labels.pod }} in {{ $labels.namespace }} is CPU is above 95%
+            summary: Pod {{ $labels.pod }} in {{ $labels.namespace }} namespace is CPU is above 90%
           expr: |
-            100 * max by(pod, namespace) (rate(container_cpu_usage_seconds_total[5m]) / on(container, pod, namespace) kube_pod_container_resource_limits{resource="cpu"}) > 95
-          for: 15m
+            100 * max by(pod, namespace) (rate(container_cpu_usage_seconds_total[5m]) / on(container, pod, namespace) kube_pod_container_resource_limits{resource="cpu"}) > 90
+          for: 5m
           labels:
-            severity: critical
+            severity: warning
         - alert: Kubernetes Pod Terminated Due to Errors
           annotations:
-            message: Kubernetes Pod Terminated Due to Errors
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace terminated due to errors
           expr: |
             kube_pod_container_status_terminated_reason{reason="Error"} > 0
-          for: 10m
+          for: 5m
           labels:
             severity: critical
         - alert: Kubernetes Pod is Waiting Due to ImagePullBackOff
           annotations:
-            message: Kubernetes Pod is Waiting Due to ImagePullBackOff
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace has ImagePullBackOff
           expr: |
             kube_pod_container_status_waiting_reason{reason="ImagePullBackOff"} > 0 
-          for: 10m
+          for: 5m
           labels:
             severity: critical
         - alert: Kubernetes Pod is Waiting Due to Crash Looping
           annotations:
-            message: Kubernetes Pod is Waiting Due to Crash Looping
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace is crashing
           expr: |
             kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} > 0 
-          for: 10m
+          for: 5m
           labels:
             severity: critical  
         - alert: Kubernetes Pod is Terminated Due to Eviction
           annotations:
-            message: Kubernetes Pod is Terminated Due to Eviction
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace has terminated due to eviction
           expr: |
             kube_pod_container_status_last_terminated_reason{reason="Evicted"} > 0
-          for: 10m
+          for: 5m
           labels:
             severity: critical
         - alert: Kubernetes Pod is Terminated Due to Container Cannot Run
           annotations:
-            message: Kubernetes Pod is Terminated Due to Container Cannot Run
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace has terminated due to container cannot run
           expr: |
             kube_pod_container_status_last_terminated_reason{reason="ContainerCannotRun"} > 0 
-          for: 10m
+          for: 5m
           labels:
             severity: critical
         - alert: Kubernetes Pod is Terminated Due to OOMKilled
           annotations:
-            message: Kubernetes Pod is Terminated Due to OOMKilled
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace is terminated due to OOMKilled
           expr: |
             kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} > 0
-          for: 10m
+          for: 5m
           labels:
             severity: critical
         - alert: Kubernetes Pod is Terminated Due to Deadline Exceeded 
           annotations:
-            message: Kubernetes Pod is Terminated Due to Deadline Exceeded 
+            summary: {{ $labels.pod }} pod in {{ $labels.namespace }} namespace terminated due to deadline exceeded
           expr: |
             kube_pod_container_status_last_terminated_reason{reason="DeadlineExceeded"} > 0
-          for: 10m
+          for: 5m
           labels:
             severity: critical
 
