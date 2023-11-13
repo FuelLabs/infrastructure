@@ -101,7 +101,7 @@ additionalPrometheusRulesMap:
       rules:
         - alert: NodeMemoryCritical
           expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 20
-          for: 5m
+          for: 15m
           labels:
             severity: critical
           annotations:
@@ -109,7 +109,7 @@ additionalPrometheusRulesMap:
             summary: "Low memory on node ({{ $value }}% available) less than 20%"    
         - alert: NodeDiskWarn
           expr: predict_linear(node_filesystem_free_bytes[1h], 4 * 3600) < 0
-          for: 5m
+          for: 15m
           labels:
             severity: warning
           annotations:
@@ -117,7 +117,7 @@ additionalPrometheusRulesMap:
             summary: "Disk predicted to fill in under 4 hours on {{ $labels.kubernetes_node }} node"
         - alert: NodeInodesWarn
           expr: predict_linear(node_filesystem_files_free{mountpoint ="/"}[1h], 4 * 3600) < 0
-          for: 5m
+          for: 15m
           labels:
             severity: warning
           annotations:
@@ -125,7 +125,7 @@ additionalPrometheusRulesMap:
             summary: "Disk predicted to run out of inodes in under 4 hours on {{ $labels.kubernetes_node }} node"
         - alert: NodeCpuLoadCritical
           expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
-          for: 5m
+          for: 15m
           labels:
             severity: warning
           annotations:
@@ -133,7 +133,7 @@ additionalPrometheusRulesMap:
             summary: "High CPU usage on node ({{ $value }}%) above 90%"
         - alert: PersistentVolumeDiskWarning
           expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 4 * 3600) < 0
-          for: 5m
+          for: 15m
           labels:
             severity: warning
           annotations:
